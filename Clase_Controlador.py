@@ -14,7 +14,7 @@ class Controlador():
         s.flagMHE = True
         s.opcion_grad = 2             # 1- Exacto, 2- NLMS, 3- DME
         s.tSample = 0.5
-        s.K = 0.5
+        s.K = 1
         s.k_MA = 0
         s.Lambda = [0.0, 0.0]
         s.mu_J = 1
