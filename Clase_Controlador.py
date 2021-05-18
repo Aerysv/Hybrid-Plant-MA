@@ -47,7 +47,9 @@ class Controlador():
         s.beta_xv = 1
 
         s.state_real = [None]*s.Nx
-        s.u_new = [None]*s.MV*s.Nu
+        s.uq1 = 0.75
+        s.uFr1 = 8.51
+        s.u_new = [s.uq1, s.uFr1]
         
         s.acc = [None]*s.MV
         s.per = [None]*s.Nd
@@ -58,8 +60,7 @@ class Controlador():
         s.aux = [None]*4
         s.config = [None]*5
 
-        s.uq1 = 0.75
-        s.uFr1 = 8.51
+
 
         s.J_y_g_ant = [None]*3*(s.Ne+1)
         s.J_y_g = [None]*3

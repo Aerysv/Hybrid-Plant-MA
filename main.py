@@ -98,8 +98,11 @@ Qdu_ant = [0.0]*Ndme	    # Esfuerzos de control anteriores
 du_ant = [0.0]*(MV*Ndme)   # Cambios anteriores de u para Lambda
 du_k = [None]*MV		    # Cambios  de u para Lambda en k
 # Vector of decision variables computed by the MPC + slacks
-u_new = [None]*(MV*Nu)
-v_new = [None]*Nx  # valores estimados de las perturbaciones
+# Acciones de control
+uq1 = 0.75
+uFr1 = 8.51
+u_new = [uq1, uFr1]
+v_new = [0.0]*Nx  # valores estimados de las perturbaciones
 Lambda = [0.0, 0.0]                            # Modificadores funcion costo
 
 # INICIALIZACIÓN
@@ -112,10 +115,6 @@ Tc0 = 20.0
 v_ini = [0.0]*Nx  # Inicializacion vector de perturbaciones
 error = [0.0]*Nx
 Q_du_k = 0.0
-
-# Acciones de control
-uq1 = 0.75
-uFr1 = 8.51
 
 # ---------BLOCO INIT --------------------
 # constraints MVs
