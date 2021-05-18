@@ -41,8 +41,8 @@ async def main():
                 
                 await controlador.recibir_variables(server)
                 controlador.actualizar_arrays()
-                controlFlag = True  # Debe leerse desde el servidor
-                if controlFlag:
+                ControlFlag = True  # Debe leerse desde el servidor
+                if ControlFlag:
                     controlador.ejecutar()
                     print("Acciones de control:")
                     print(f"\t q = {controlador.uq1:.3f}")
