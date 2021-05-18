@@ -273,7 +273,7 @@ for k_sim in range(0, 121):
     # LLamada al controlador
     # ___________________________________________________________________
     actualizar_MPC(m_MPC, uq1, uFr1, state, v_new, error, Lambda)
-    uq1, uFr1 = ejecutar_MPC(m_MPC, tSample) 
+    uq1, uFr1 = ejecutar_MPC(m_MPC, tSample)
     u_new = [uq1, uFr1]
     # _________________________________________________________controlador
 
@@ -284,8 +284,6 @@ for k_sim in range(0, 121):
     m_SIM.T[0.0] = profiles[-1, 2]
     m_SIM.Tc[0.0] = profiles[-1, 3]
 
-    #m_SIM.q = value(m_MPC.q[tSample])
-    #m_SIM.Fr = value(m_MPC.Fr[tSample])
     m_SIM.q = uq1
     m_SIM.Fr = uFr1
 
