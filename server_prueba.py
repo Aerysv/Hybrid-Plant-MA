@@ -35,7 +35,6 @@ async def main():
     async with server:
         while True:
             await asyncio.sleep(0.01)
-            print(".")
             command_run = server.get_node("ns=6;s=command_run")
             if await command_run.get_value() == 1:
                 
@@ -52,6 +51,7 @@ async def main():
                     await server.write_attribute_value(server.get_node("ns=4;s=uFr[1]").nodeid,
                                                         ua.DataValue(controlador.uFr1))
                     # Falta escribir todas las variables del controlador al servidor
+                    await controlador.escribir_variables(server)
                 await server.write_attribute_value(command_run.nodeid, ua.DataValue(0))
 
 if __name__ == "__main__":

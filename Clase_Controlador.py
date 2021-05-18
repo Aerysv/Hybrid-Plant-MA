@@ -1,4 +1,5 @@
 import asyncio
+from asyncua import ua
 from pyomo.environ import *
 import numpy as np
 import MPC as MPC
@@ -39,9 +40,12 @@ class Controlador():
         s.Ly_s = [None]*2
 
         s.state = [None]*s.Nx
+        s.v_new = [None]*s.Nx
+        s.error = [None]*s.Nx
+
         s.state_real = [None]*s.Nx
         s.u_new = [None]*s.MV*s.Nu
-        s.v_new = [None]*s.Nx
+        
         s.acc = [None]*s.MV
         s.per = [None]*s.Nd
         s.med = [None]*s.Nm
@@ -62,6 +66,21 @@ class Controlador():
         s.du_ant = [0.0]*(s.MV*s.Ndme)   # Cambios anteriores de u para Lambda
         s.du_k = [None]*s.MV		    # Cambios  de u para Lambda en k
 
+    async def escribir_variables(s, server):
+        # Los arrays en el espacio de nombres del servidor empiezan en 1, y no en cero como en Python
+        # MHE
+        for i in range(s.Nx):
+            await server.write_attribute_value(server.get_node(f"ns=4;s=state[{i+1}]").nodeid, ua.DataValue(s.state[i]))
+            await server.write_attribute_value(server.get_node(f"ns=4;s=v_new[{i+1}]").nodeid, ua.DataValue(s.v_new[i]))
+            await server.write_attribute_value(server.get_node(f"ns=4;s=error[{i+1}]").nodeid, ua.DataValue(s.error[i]))
+        
+        
+        for i in range(2):
+            # Gradientes
+            await server.write_attribute_value(server.get_node(f"ns=4;s=grad_m[{i+1}]").nodeid, ua.DataValue(s.grad_m[i]))
+            await server.write_attribute_value(server.get_node(f"ns=4;s=grad_p[{i+1}]").nodeid, ua.DataValue(s.grad_p[i]))
+            # MA
+            await server.write_attribute_value(server.get_node(f"ns=4;s=Lambda[{i+1}]").nodeid, ua.DataValue(s.Lambda[i]))
 
     async def recibir_variables(s, server):
         # Datos de entrada
@@ -156,12 +175,12 @@ class Controlador():
         if s.flagMHE:
             print("\tEjecutnado MHE")
             MHE.actualizar_MHE(s.m_MHE, s.acc_ant, s.per_ant, s.med_ant)
-            state, v_new, error = MHE.ejecutar_MHE(s.m_MHE, s.Ne, s.tSample)
+            s.state, s.v_new, s.error = MHE.ejecutar_MHE(s.m_MHE, s.Ne, s.tSample)
 
         else:
-            state = s.med
-            v_new = [0.0]*s.Nx
-            error = [0.0]*s.Nx
+            s.state = s.med
+            s.v_new = [0.0]*s.Nx
+            s.error = [0.0]*s.Nx
         # _________________________________________________________________MHE
 
         # Calculo de modificadores con MA
@@ -171,14 +190,14 @@ class Controlador():
 
             if (s.opcion_grad == 1):
                 print("Calculando grad exactos")
-                grad_m = grd.grad_m_DD(s.med, s.per, s.aux, v_new, error, s.config)
-                grad_p = grd.grad_p_DD(s.med, s.aux)
+                s.grad_m = grd.grad_m_DD(s.med, s.per, s.aux, s.v_new, s.error, s.config)
+                s.grad_p = grd.grad_p_DD(s.med, s.aux)
 
-                Lambda = grd.filtro_mod(grad_p, grad_m, s.K, s.Lambda, s.k_MA)
+                s.Lambda = grd.filtro_mod(s.grad_p, s.grad_m, s.K, s.Lambda, s.k_MA)
             
             elif s.opcion_grad == 2:
                 
-                grad_m = grd.grad_m_DD(s.med, s.per, s.aux, v_new, error, s.config)
+                s.grad_m = grd.grad_m_DD(s.med, s.per, s.aux, s.v_new, s.error, s.config)
 
                 print("Estimando grad proceso por NLMS")
                 # Valores más actuales están a finales del vector
@@ -194,8 +213,8 @@ class Controlador():
 
                 theta = nlms.NLMS(s.u_ant, s.J_p_ant, J_y_g[0], s.theta_J_ant, s.mu_J)
                 s.theta_J_ant = theta
-                grad_p = [theta[0], theta[1]]
-                Lambda = grd.filtro_mod(grad_p, grad_m, s.K, s.Lambda, s.k_MA)
+                s.grad_p = [theta[0], theta[1]]
+                s.Lambda = grd.filtro_mod(s.grad_p, s.grad_m, s.K, s.Lambda, s.k_MA)
 
             elif s.opcion_grad == 3:
                 print("Calculando mod por DME")
@@ -204,11 +223,12 @@ class Controlador():
                 s.du_k[1] = (s.uq1 - s.u_ant[s.MV*(s.Ndme-1)+1])
                 s.du_k[2] = (s.uFr1 - s.u_ant[s.MV*(s.Ndme-1)+2])
         else:
+            # Sin MA
             s.Lambda = [0.0, 0.0]
 
         # LLamada al controlador
         # ___________________________________________________________________
-        MPC.actualizar_MPC(s.m_MPC, s.uq1, s.uFr1, state, v_new, error, Lambda)
+        MPC.actualizar_MPC(s.m_MPC, s.uq1, s.uFr1, s.state, s.v_new, s.error, s.Lambda)
         s.uq1, s.uFr1 = MPC.ejecutar_MPC(s.m_MPC, s.tSample) 
         s.u_new = [s.uq1, s.uFr1]
         # _________________________________________________________controlador
