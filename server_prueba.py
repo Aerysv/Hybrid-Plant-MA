@@ -20,8 +20,12 @@ async def main():
     server = Server()
     await server.init()
     server.set_endpoint("opc.tcp://127.0.0.1:16703/")
+    server.set_endpoint("opc.tcp://labo6.isa.cie.uva.es:16703/")
     server.set_server_name("Servidor OPC eMPC MA")
     server.set_security_policy([ua.SecurityPolicyType.NoSecurity])
+    server._permission_ruleset = None
+    server._policyIDs = ["Anonymous", "Basic256Sha256", "Username"]
+    server.certificate = None
 
     uri = "Servidor OPC eMPC MA"
     idx = await server.register_namespace(uri)
