@@ -77,7 +77,7 @@ beta_x_ant = 1
 
 # NLMS
 theta_J_ant = [0.0]*15
-mu_J = 1
+mu_J = 0.6
 
 # Vectores de medidas actuales y pasadas, parametros
 acc = [None]*MV  # Valores actuales de las acciones de control
@@ -259,7 +259,7 @@ for k_sim in range(0, 121):
 
             J_y_g = [J_costo_real, 0.0, 0.0]
             '''
-            theta = NLMS(u_ant, J_p_ant, J_y_g[0], theta_J_ant, mu_J)
+            theta = NLMS(u_ant, J_p_ant, J_y_g[0], theta_J_ant, mu_J, rho=1e-4)
             theta_J_ant = theta
             grad_p = [theta[0], theta[1]]
             Lambda = filtro_mod(grad_p, grad_m,K,Lambda,k_MA)

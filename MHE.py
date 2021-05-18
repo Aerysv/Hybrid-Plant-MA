@@ -134,17 +134,16 @@ def crear_MHE():
     #Definir la función de coste
     def _obj(m):
         tS = tSample
-        
-        # Penalización por desviarse de la solución anterior
-        J_costo_N = (m.Ca[0.0]/m.Ca_ant - 1)**2 + (m.Cb[0.0]/m.Cb_ant - 1)**2 + \
-			 	    + (m.T[0.0]/m.T_ant - 1)**2 + (m.Tc[0.0]/m.Tc_ant - 1)**2
-        
         # Penalización desviación de las variables medidas
         J_costo_m = 0
         for i in range(nSamples):
             J_costo_m += (m.Ca[i*tS]/m.Ca_m[i*tS] - 1)**2 + (m.Cb[i*tS]/m.Cb_m[i*tS] - 1)**2 + \
                          + (m.T[i*tS]/m.T_m[i*tS] - 1)**2 + (m.Tc[i*tS]/m.Tc_m[i*tS] - 1)**2
 
+        # Penalización por desviarse de la solución anterior
+        J_costo_N = (m.Ca[0.0]/m.Ca_ant - 1)**2 + (m.Cb[0.0]/m.Cb_ant - 1)**2 + \
+			 	    + (m.T[0.0]/m.T_ant - 1)**2 + (m.Tc[0.0]/m.Tc_ant - 1)**2
+        
         # Penalización desviación de perturbaciones anteriores
         J_costo_v = 0
         for i in range(4):
