@@ -39,9 +39,12 @@ class Controlador():
         s.Ly_i = [None]*2
         s.Ly_s = [None]*2
 
+        # MHE
         s.state = [None]*s.Nx
-        s.v_new = [None]*s.Nx
-        s.error = [None]*s.Nx
+        s.v_new = [0.0]*s.Nx
+        s.error = [0.0]*s.Nx
+        s.beta_x_ant = 1
+        s.beta_xv = 1
 
         s.state_real = [None]*s.Nx
         s.u_new = [None]*s.MV*s.Nu
@@ -83,6 +86,14 @@ class Controlador():
             await server.write_attribute_value(server.get_node(f"ns=4;s=Lambda[{i+1}]").nodeid, ua.DataValue(s.Lambda[i]))
 
     async def recibir_variables(s, server):
+        # Tipo de control
+        s.conMA = await server.get_node("ns=4;s=conMA").read_value()
+        s.opcion_grad = await server.get_node("ns=4;s=opciones_grad").read_value()
+        # Configuración NLMS
+        s.mu_J = await server.get_node("ns=4;s=mu_J").read_value()
+        # MHE
+        s.beta_x_ant = await server.get_node("ns=4;s=beta_xN").read_value()
+        s.beta_xv = await server.get_node("ns=4;s=beta_xv").read_value()
         # Datos de entrada
         s.Lu_i[0] = await server.get_node("ns=4;s=Liminfq").read_value()
         s.Lu_s[0] = await server.get_node("ns=4;s=Limsupq").read_value()
@@ -174,7 +185,7 @@ class Controlador():
         # ___________________________________________________________________
         if s.flagMHE:
             print("\tEjecutnado MHE")
-            MHE.actualizar_MHE(s.m_MHE, s.acc_ant, s.per_ant, s.med_ant)
+            MHE.actualizar_MHE(s.m_MHE, s.acc_ant, s.per_ant, s.med_ant, s.beta_xv, s.beta_x_ant)
             s.state, s.v_new, s.error = MHE.ejecutar_MHE(s.m_MHE, s.Ne, s.tSample)
 
         else:
@@ -184,11 +195,11 @@ class Controlador():
         # _________________________________________________________________MHE
 
         # Calculo de modificadores con MA
-        if (s.conMA == True):
+        if s.conMA == True:
 
             s.k_MA += 1
 
-            if (s.opcion_grad == 1):
+            if s.opcion_grad == 1:
                 print("Calculando grad exactos")
                 s.grad_m = grd.grad_m_DD(s.med, s.per, s.aux, s.v_new, s.error, s.config)
                 s.grad_p = grd.grad_p_DD(s.med, s.aux)

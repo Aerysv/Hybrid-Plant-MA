@@ -40,7 +40,7 @@ async def main():
                 
                 await controlador.recibir_variables(server)
                 controlador.actualizar_arrays()
-                ControlFlag = True  # Debe leerse desde el servidor
+                ControlFlag = await server.get_node("ns=4;s=ControlFlag").read_value()
                 if ControlFlag:
                     controlador.ejecutar()
                     print("Acciones de control:")
