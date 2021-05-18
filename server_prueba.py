@@ -19,7 +19,7 @@ async def main():
 
     server = Server()
     await server.init()
-    server.set_endpoint("opc.tcp://localhost:16703/")
+    server.set_endpoint("opc.tcp://127.0.0.1:16703/")
     server.set_server_name("Servidor OPC eMPC MA")
     server.set_security_policy([ua.SecurityPolicyType.NoSecurity])
 

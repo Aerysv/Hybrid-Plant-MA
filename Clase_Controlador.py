@@ -66,6 +66,7 @@ class Controlador():
         s.J_p_ant = [None]*3
         s.u_ant = [None]*(s.MV*s.Ne)
         s.Qdu_ant = [0.0]*s.Ndme	    # Esfuerzos de control anteriores
+        s.Q_du_k = 0.0
         s.du_ant = [0.0]*(s.MV*s.Ndme)   # Cambios anteriores de u para Lambda
         s.du_k = [None]*s.MV		    # Cambios  de u para Lambda en k
 
@@ -229,7 +230,7 @@ class Controlador():
 
             elif s.opcion_grad == 3:
                 print("Calculando mod por DME")
-                Q_du_k = 0.0  # beta[1]*((uq[1]-u_ant[MV*(Ndme-1)+1])**2  + SUM( i IN 2,Nu;(uq[i]-uq[i-1])**2 )) \
+                s.Q_du_k = 0.0  # beta[1]*((uq[1]-u_ant[MV*(Ndme-1)+1])**2  + SUM( i IN 2,Nu;(uq[i]-uq[i-1])**2 )) \
                 # + beta[2]*((uFr[1]-u_ant[MV*(Ndme-1)+2])**2 + SUM( i IN 2,Nu;(uFr[i]-uFr[i-1])**2 ))
                 s.du_k[1] = (s.uq1 - s.u_ant[s.MV*(s.Ndme-1)+1])
                 s.du_k[2] = (s.uFr1 - s.u_ant[s.MV*(s.Ndme-1)+2])
