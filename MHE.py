@@ -160,7 +160,7 @@ def crear_MHE():
 
     return m
 
-def actualizar_MHE(m, acc, per, med, MV=2, Nd=2, Nm=4, Ne=4, tSample=0.5):
+def actualizar_MHE(m, acc, per, med, beta_xv, beta_x_ant, MV=2, Nd=2, Nm=4, Ne=4, tSample=0.5):
     t_fe = m.t._fe
     t_MHE = [val for val in m.t]
     # Actualización en los elementos finitos
@@ -192,6 +192,9 @@ def actualizar_MHE(m, acc, per, med, MV=2, Nd=2, Nm=4, Ne=4, tSample=0.5):
     m.Cb_ant = m.Cb[m.t.first()].value
     m.T_ant = m.T[m.t.first()].value
     m.Tc_ant = m.Tc[m.t.first()].value
+    # Pesos de la función de costo
+    m.beta_xv = beta_xv
+    m.beta_x_ant = beta_x_ant
 
 def ejecutar_MHE(m_MHE, Ne, tSample):
     solver = SolverFactory('ipopt')

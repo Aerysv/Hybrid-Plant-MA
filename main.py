@@ -71,6 +71,10 @@ K = 0.5  # filtro de los modificadores
 opcion_grad = 2             # 1- Exacto, 2- NLMS, 3- DME
 flagMHE = True
 
+# MHE
+beta_xv = 1
+beta_x_ant = 1
+
 # NLMS
 theta_J_ant = [0.0]*15
 mu_J = 1
@@ -219,7 +223,7 @@ for k_sim in range(0, 121):
     # ___________________________________________________________________
     if flagMHE & (k_sim>Ne+1):
         print("\tEjecutnado MHE")
-        MHE.actualizar_MHE(m_MHE, acc_ant, per_ant, med_ant)
+        MHE.actualizar_MHE(m_MHE, acc_ant, per_ant, med_ant, beta_xv, beta_x_ant)
         state, v_new, error = MHE.ejecutar_MHE(m_MHE, Ne, tSample)
 
     else:
