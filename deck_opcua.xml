@@ -48,15 +48,6 @@
   <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
   </References>
 </UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=Ca0" BrowseName="4:Ca0" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>Ca0</DisplayName>
-  <Value>
-    <uax:Double>5</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
 <UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=Cb" BrowseName="4:Cb" UserAccessLevel="3" AccessLevel="3">
   <DisplayName>Cb</DisplayName>
   <Value>
@@ -75,37 +66,10 @@
   <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
   </References>
 </UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=Epsilon[1]" BrowseName="4:Epsilon[1]" UserAccessLevel="1" AccessLevel="1">
-  <DisplayName>Epsilon[1]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
 <UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=Fr" BrowseName="4:Fr" UserAccessLevel="3" AccessLevel="3">
   <DisplayName>Fr</DisplayName>
   <Value>
     <uax:Double>5.7</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=Gamma[1]" BrowseName="4:Gamma[1]" UserAccessLevel="1" AccessLevel="1">
-  <DisplayName>Gamma[1]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=Gamma[2]" BrowseName="4:Gamma[2]" UserAccessLevel="1" AccessLevel="1">
-  <DisplayName>Gamma[2]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
   </Value>
      <References>
   <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
@@ -205,15 +169,6 @@
   <DisplayName>Limsupq</DisplayName>
   <Value>
     <uax:Double>1.2</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=Pred_h" BrowseName="4:Pred_h" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>Pred_h</DisplayName>
-  <Value>
-    <uax:Double>60</uax:Double>
   </Value>
      <References>
   <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
@@ -408,42 +363,6 @@
   <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
   </References>
 </UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=grad_m[3]" BrowseName="4:grad_m[3]" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>grad_m[3]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=grad_m[4]" BrowseName="4:grad_m[4]" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>grad_m[4]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=grad_m[5]" BrowseName="4:grad_m[5]" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>grad_m[5]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=grad_m[6]" BrowseName="4:grad_m[6]" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>grad_m[6]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
 <UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=grad_p[1]" BrowseName="4:grad_p[1]" UserAccessLevel="3" AccessLevel="3">
   <DisplayName>grad_p[1]</DisplayName>
   <Value>
@@ -455,42 +374,6 @@
 </UAVariable>
 <UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=grad_p[2]" BrowseName="4:grad_p[2]" UserAccessLevel="3" AccessLevel="3">
   <DisplayName>grad_p[2]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=grad_p[3]" BrowseName="4:grad_p[3]" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>grad_p[3]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=grad_p[4]" BrowseName="4:grad_p[4]" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>grad_p[4]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=grad_p[5]" BrowseName="4:grad_p[5]" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>grad_p[5]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=grad_p[6]" BrowseName="4:grad_p[6]" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>grad_p[6]</DisplayName>
   <Value>
     <uax:Double>0</uax:Double>
   </Value>
@@ -633,42 +516,6 @@
   <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
   </References>
 </UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=state_real[1]" BrowseName="4:state_real[1]" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>state_real[1]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=state_real[2]" BrowseName="4:state_real[2]" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>state_real[2]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=state_real[3]" BrowseName="4:state_real[3]" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>state_real[3]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=state_real[4]" BrowseName="4:state_real[4]" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>state_real[4]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
 <UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=uFr[1]" BrowseName="4:uFr[1]" UserAccessLevel="3" AccessLevel="3">
   <DisplayName>uFr[1]</DisplayName>
   <Value>
@@ -716,42 +563,6 @@
 </UAVariable>
 <UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=v_new[4]" BrowseName="4:v_new[4]" UserAccessLevel="3" AccessLevel="3">
   <DisplayName>v_new[4]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=x_Ne[1]" BrowseName="4:x_Ne[1]" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>x_Ne[1]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=x_Ne[2]" BrowseName="4:x_Ne[2]" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>x_Ne[2]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=x_Ne[3]" BrowseName="4:x_Ne[3]" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>x_Ne[3]</DisplayName>
-  <Value>
-    <uax:Double>0</uax:Double>
-  </Value>
-     <References>
-  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
-  </References>
-</UAVariable>
-<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=x_Ne[4]" BrowseName="4:x_Ne[4]" UserAccessLevel="3" AccessLevel="3">
-  <DisplayName>x_Ne[4]</DisplayName>
   <Value>
     <uax:Double>0</uax:Double>
   </Value>
