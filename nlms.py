@@ -13,8 +13,8 @@ from numpy import linalg as LA
 def NLMS(u_ant, func_ant, func_actual, theta, mu, rho = 0.001):
 
     # Inicializando vectores
-    dq  = np.array([0, 0])
-    dFr = np.array([0, 0])
+    dq  = np.array([0.0, 0.0])
+    dFr = np.array([0.0, 0.0])
     phi = np.array([None]*15)
 
     # Vectores de medidas: mayor indice es el valor anterior más actual
