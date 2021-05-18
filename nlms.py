@@ -10,7 +10,7 @@
 import numpy as np
 from numpy import linalg as LA
 
-def NLMS(u_ant, func_ant, func_actual, theta, mu, rho = 0.001):
+def NLMS(u_ant, func_ant, func_actual, theta, mu, rho = 1e-3):
 
     # Inicializando vectores
     dq  = np.array([0.0, 0.0])

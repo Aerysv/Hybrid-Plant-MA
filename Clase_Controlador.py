@@ -216,15 +216,15 @@ class Controlador():
                 # Valores más actuales están a finales del vector
                 # Para NLMS sólo necesito los 3 últimos valores
                 # El mayor indice tiene el valor más actual
-                s.J_p_ant[0] = s.J_y_g_ant[6]  # indices son: 0, 3, 6, 9, 12
-                s.J_p_ant[1] = s.J_y_g_ant[9]
-                s.J_p_ant[2] = s.J_y_g_ant[12]
-
+                s.J_p_ant[0] = s.J_y_g_ant[3]  # indices son: 0, 3, 6, 9, 12
+                s.J_p_ant[1] = s.J_y_g_ant[6]
+                s.J_p_ant[2] = s.J_y_g_ant[9]
+                '''
                 J_costo_real = s.acc[0]*(s.config[1]*s.med[1] - s.config[0]*5) - s.config[2]*s.acc[1]
 
                 J_y_g = [J_costo_real, 0.0, 0.0]
-
-                theta = nlms.NLMS(s.u_ant, s.J_p_ant, J_y_g[0], s.theta_J_ant, s.mu_J)
+                '''
+                theta = nlms.NLMS(s.u_ant, s.J_p_ant, s.J_y_g[0], s.theta_J_ant, s.mu_J)
                 s.theta_J_ant = theta
                 s.grad_p = [theta[0], theta[1]]
                 s.Lambda = grd.filtro_mod(s.grad_p, s.grad_m, s.K, s.Lambda, s.k_MA)

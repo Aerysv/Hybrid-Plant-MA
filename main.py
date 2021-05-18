@@ -251,14 +251,14 @@ for k_sim in range(0, 121):
             # Valores más actuales están a finales del vector
             # Para NLMS sólo necesito los 3 últimos valores
             # El mayor indice tiene el valor más actual
-            J_p_ant[0] = J_y_g_ant[6]  # indices son: 0, 3, 6, 9, 12
-            J_p_ant[1] = J_y_g_ant[9]
-            J_p_ant[2] = J_y_g_ant[12]
-
+            J_p_ant[0] = J_y_g_ant[3]  # indices son: 0, 3, 6, 9, 12
+            J_p_ant[1] = J_y_g_ant[6]
+            J_p_ant[2] = J_y_g_ant[9]
+            '''
             J_costo_real = acc[0]*(pB*med[1] - pA*5) - pFr*acc[1]
 
             J_y_g = [J_costo_real, 0.0, 0.0]
-
+            '''
             theta = NLMS(u_ant, J_p_ant, J_y_g[0], theta_J_ant, mu_J)
             theta_J_ant = theta
             grad_p = [theta[0], theta[1]]
