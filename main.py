@@ -77,7 +77,7 @@ beta_x_ant = 1
 
 # NLMS
 theta_J_ant = [0.0]*15
-mu_J = 0.6
+mu_J = 1
 
 # Vectores de medidas actuales y pasadas, parametros
 acc = [None]*MV  # Valores actuales de las acciones de control
