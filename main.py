@@ -67,7 +67,7 @@ pFr = 3.0  # (euro/mol)
 
 # Parametros MA
 conMA = True
-K = 0.5  # filtro de los modificadores
+K = 1  # filtro de los modificadores
 opcion_grad = 2             # 1- Exacto, 2- NLMS, 3- DME
 flagMHE = True
 
@@ -140,10 +140,10 @@ if flagMHE:
     m_MHE = MHE.crear_MHE()
 
 profiles = np.array([[Ca, Cb, T, Tc]])
-TIME = np.array([0])            # Array de tiempo para graficar
-Y = np.array([[0, 0, 0, 0]])    # Array de estados para graficar
-U = np.array([[0, 0]])          # Array de q y Fr para graficar
-J = np.array([0])               # Array de J para graficar
+TIME = np.array([0.0])            # Array de tiempo para graficar
+Y = np.array([[0.0, 0.0, 0.0, 0.0]])    # Array de estados para graficar
+U = np.array([[0.0, 0.0]])          # Array de q y Fr para graficar
+J = np.array([0.0])               # Array de J para graficar
 
 # Iteracion de MA
 k_MA = 0
@@ -153,7 +153,7 @@ solver.options['tol'] = 1e-4
 solver.options['linear_solver'] = 'ma57'
 
 t0 = time.time()    # Borrar
-for k_sim in range(0, 121):
+for k_sim in range(0, 481): #121 241 481
 
     # Actualizar vectores
     acc = [value(m_SIM.q), value(m_SIM.Fr)]
@@ -167,8 +167,8 @@ for k_sim in range(0, 121):
     aux = [uq1, uFr1, T0, Tc0]
 
     J_y_g[0] = acc[0]*(pB*med[1] - pA*5) - pFr*acc[1]
-    J_y_g[1] = 0
-    J_y_g[2] = 0
+    J_y_g[1] = 0.0
+    J_y_g[2] = 0.0
 
     # Actualizar el vector de acciones de control
     for i in range(0, MV):
@@ -221,7 +221,7 @@ for k_sim in range(0, 121):
     # LLamada al MHE
     # ___________________________________________________________________
     if flagMHE & (k_sim>Ne+1):
-        print("\tEjecutnado MHE")
+        print("\tEjecutando MHE")
         MHE.actualizar_MHE(m_MHE, acc_ant, per_ant, med_ant, beta_xv, beta_x_ant)
         state, v_new, error = MHE.ejecutar_MHE(m_MHE, Ne, tSample)
 
@@ -259,7 +259,7 @@ for k_sim in range(0, 121):
 
             J_y_g = [J_costo_real, 0.0, 0.0]
             '''
-            theta = NLMS(u_ant, J_p_ant, J_y_g[0], theta_J_ant, mu_J, rho=1e-4)
+            theta = NLMS(u_ant, J_p_ant, J_y_g[0], theta_J_ant, mu_J)
             theta_J_ant = theta
             grad_p = [theta[0], theta[1]]
             Lambda = filtro_mod(grad_p, grad_m,K,Lambda,k_MA)
