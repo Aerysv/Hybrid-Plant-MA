@@ -1,11 +1,15 @@
 import asyncio
 from asyncua import ua
+from datetime import datetime
 from pyomo.environ import *
+import logging
 import numpy as np
 import MPC as MPC
 import calculo_grad as grd
 import nlms as nlms
 import MHE as MHE
+
+_logger = logging.getLogger("Server")
 
 class Controlador():
     def __init__(s):
@@ -78,6 +82,10 @@ class Controlador():
             await server.write_attribute_value(server.get_node(f"ns=4;s=state[{i+1}]").nodeid, ua.DataValue(s.state[i]))
             await server.write_attribute_value(server.get_node(f"ns=4;s=v_new[{i+1}]").nodeid, ua.DataValue(s.v_new[i]))
             await server.write_attribute_value(server.get_node(f"ns=4;s=error[{i+1}]").nodeid, ua.DataValue(s.error[i]))
+
+            _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: state[{i+1}] = {s.state[i]}')
+            _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: v_new[{i+1}] = {s.v_new[i]}')
+            _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: error[{i+1}] = {s.error[i]}')
         
         
         for i in range(2):
@@ -86,6 +94,10 @@ class Controlador():
             await server.write_attribute_value(server.get_node(f"ns=4;s=grad_p[{i+1}]").nodeid, ua.DataValue(s.grad_p[i]))
             # MA
             await server.write_attribute_value(server.get_node(f"ns=4;s=Lambda[{i+1}]").nodeid, ua.DataValue(s.Lambda[i]))
+
+            _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: grad_m[{i+1}] = {s.grad_m[i]}')
+            _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: grad_p[{i+1}] = {s.grad_p[i]}')
+            _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: Lambda[{i+1}] = {s.Lambda[i]}')
 
     async def recibir_variables(s, server):
         # Tipo de control
