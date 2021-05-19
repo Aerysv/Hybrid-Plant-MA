@@ -1,10 +1,9 @@
-from main import T
 from pyomo.environ import *
 from pyomo.dae import *
 import numpy as np
 import matplotlib.pyplot as plt
 
-def crear_DME(MV=2):
+def crear_DME(MV=2,Ndme=4):
     # Parámetros del modelo MALO
     R = 0.00831  # kJ/mol/K
     Ca0 = 5.0     # mol/L
@@ -29,14 +28,19 @@ def crear_DME(MV=2):
     pB = 18.0     # €/L
     pFr = 3.0     # €/L
 
-    # Sintonía del DME
+     # Parametros de sintonía del DME
     LiminfLambda = -2500
     LimsupLambda =  2500
-    tEnd = 1.5
+    tEnd = 2.0
     tSample = 0.5  # Minutos
     nSamples = int(tEnd/tSample) + 1
+    beta_theta = [0.1, 0.1]
+    beta_cost = 1.0
 
     tiempo = np.round(np.linspace(0, tEnd, nSamples), decimals=6)
+
+    # Vectores para calculos
+    theta_deltau = [None]*2
 
     # Declaración del modelo
     m = ConcreteModel(name="ReactorVandeVusse")
@@ -56,14 +60,7 @@ def crear_DME(MV=2):
     m.T_m = Param(m.t, default=30, mutable=True)
     m.Tc_m = Param(m.t, default=20, mutable=True)
 
-    # Parametros de sintonía del DME
-    LiminfLambda = -2500
-    LimsupLambda =  2500
-    tEnd = 1.5
-    tSample = 0.5  # Minutos
-    nSamples = int(tEnd/tSample) + 1
-    beta_theta = [0.1, 0.1]
-    beta_cost = 1.0
+    # Sintonia DME
     m.beta_theta = Param(default=beta_theta, mutable=True)
     m.beta_cost = Param(default=beta_cost, mutable=True)
 
@@ -86,14 +83,12 @@ def crear_DME(MV=2):
     m.uFrant = Param(initialize=8.51, mutable=True)
 
     # Integración MHE
-    m.error = Param([0,1,2,3], initialize={0:0.0, 1:0.0, 2:0.0, 3:0.0}, mutable=True)
-    v_new = [0.0, 0.0, 0.0, 0.0]
-
-    # Integración MA
-    m.Theta = Param([0,1], initialize={0:0.0, 1:0.0}, mutable=True)
-
+    m.error = Param([0,1,2,3], default=0.0, mutable=True)
+    m.v = Param([0,1,2,3], default=0.0, mutable=True)
+    
     # Integración con controlador
-    m.Qdu = Param([0,1,2], initialize={0:0.0, 1:0.0, 2:0.0}, mutable=True)  # Esfuerzos de control no aplicados al proceso    
+    m.Qdu = Param([0,1,2], default=0.0, mutable=True)  # Esfuerzos de control no aplicados al proceso
+    m.du =  Param([0,1],[0,1,2,3], default=0.0, mutable=True) 
 
     # Declaración de las variables dependientes
     m.Ca = Var(m.t, within=PositiveReals)
@@ -102,10 +97,9 @@ def crear_DME(MV=2):
     m.Tc = Var(m.t, within=PositiveReals)
 
     # Declaración de las variables de decisión
-    # Lambdas actuales y pasados
-    m.Lambda1 = Var([0, 1, 2], bounds=(LiminfLambda, LimsupLambda), initialize=0.0)    
-    m.Lambda2 = Var([0, 1, 2], bounds=(LiminfLambda, LimsupLambda), initialize=0.0)    
-    
+    # Thetas actuales y pasados: 8 thetas
+    m.Theta = Var([0, 1],[0, 1, 2, 3], bounds=(LiminfLambda, LimsupLambda), initialize=0.0)    
+
     # Declaración de las derivadas de las variables
     m.Ca_dot = DerivativeVar(m.Ca, wrt=m.t)
     m.Cb_dot = DerivativeVar(m.Cb, wrt=m.t)
@@ -120,6 +114,8 @@ def crear_DME(MV=2):
 
     # Ecuaciones del modelo
     def _dCadt(m, t):
+        if m.t == m.t.first():
+            return Constraint.Skip
         return V*m.Ca_dot[t] == m.q[t]*(Ca0 - m.Ca[t]) + V*(-k10*exp(-Ea1/(R*(m.T[t]+273.15)))*m.Ca[t] \
                                                             - 2*k30*exp(-Ea3/(R*(m.T[t]+273.15)))*m.Ca[t]**2) + m.v[0]
 
@@ -138,7 +134,7 @@ def crear_DME(MV=2):
                                            - 2*dHrxn3*k30*exp(-Ea3/(R*(m.T[t]+273.15)))*m.Ca[t]**2) + m.v[2]
 
     def _dTcdt(m, t):
-        if m.t == m.t.first(): # Para que eso?
+        if m.t == m.t.first():
             return Constraint.Skip
         return rho*Cp*Vc*m.Tc_dot[t] == m.Fr[t]*rho*Cp*(m.Tc0[t] - m.Tc[t]) + \
                                         + alpha*m.Fr[t]**0.8*(m.T[t] - m.Tc[t]) + m.v[3]
@@ -154,31 +150,28 @@ def crear_DME(MV=2):
 
         tS = tSample
 
-        for i in range(nSamples):
-            m.Level[i] = m.Qdu[i*tS] #Qdu[0] + (Qdu[i+1]-Qdu[i])*sigmoide(TIME,i*t_Sample,Sig))
-
+        #for i in range(nSamples):
+         #   Level[i] = m.Qdu[i*tS] #Qdu[0] + (Qdu[i+1]-Qdu[i])*sigmoide(TIME,i*t_Sample,Sig))
+        J_proc = [None]*nSamples
+        J_modelo = [None]*nSamples
+        J_modified = [None]*nSamples
         # Theta*deltau: el mayor indice es el más actual
         for i in range (0, MV):
-            for j in range(nSamples):
-                m.theta_deltau[i] = m.Theta[i,j]*m.du[i,j] #Theta[i,1]*du[i,1] + (Theta[i,j+1]*du[i,j+1]-Theta[i,j]*du[i,j])*sigmoide(TIME,j*t_Sample,Sig))
-
+            for j in range(Ndme):
+                theta_deltau[i] = m.Theta[i,j]*m.du[i,j] #Theta[i,1]*du[i,1] + (Theta[i,j+1]*du[i,j+1]-Theta[i,j]*du[i,j])*sigmoide(TIME,j*t_Sample,Sig))
+        
         # Past process data
         for i in range(nSamples):
-            m.J_proc[i]   = m.q[i*tS]*(pB*m.Cb_m[i*tS] - pA*Ca0) - m.Fr[i*tS]*pFr
-
-        for i in range(nSamples):
-            m.J_modelo[i] = m.q[i*tS]*(pB*(m.Cb[i*tS]+m.error[1]) - pA*Ca0) - m.Fr[i*tS]*pFr
-
-        # Valor del costo y resticciones del Modelo + MA
-        for i in range(nSamples):
-            m.J_modified[i] = m.J_modelo[i] + m.theta_deltau[0] + m.theta_deltau[1] + m.Level[i]	
+            J_proc[i] = m.q[i*tS]*(pB*m.Cb_m[i*tS] - pA*Ca0) - m.Fr[i*tS]*pFr
+            J_modelo[i] = m.q[i*tS]*(pB*(m.Cb[i*tS]+m.error[1]) - pA*Ca0) - m.Fr[i*tS]*pFr
+            J_modified[i] = J_modelo[i] + theta_deltau[0] + theta_deltau[1] + m.Qdu[i]	
 
         # Calculando diferencia al cuadrado entre el proceso y modelo
         Delta_J = 0.0
         for i in range(nSamples):
-            Delta_J += (m.J_proc[i] - m.J_modified[i])*(m.J_proc[i] - m.J_modified[i])  
+            Delta_J += (J_proc[i] - J_modified[i])*(J_proc[i] - J_modified[i])  
 
-        for i in range(nSamples):
+        for i in range(Ndme):
             Delta_theta = m.beta_theta[0]*((m.Theta[1,j]-m.Theta_ant[MV*(j-1)])**2) + m.beta_theta[1]*((m.Theta[2,j]-m.Theta_ant[MV*(j-1)+1])**2) 
 
         J_DME = m.beta_cost*Delta_J + Delta_theta #INTEGRAL--!!!!
@@ -189,23 +182,21 @@ def crear_DME(MV=2):
 
     # Discretizar con colocación en elementos finitos
     discretizer = TransformationFactory('dae.collocation')
-    discretizer.apply_to(m, nfe=nSamples, ncp=3, scheme='LAGRANGE-RADAU')
-    m = discretizer.reduce_collocation_points(m, var=m.q, ncp=1, contset=m.t)
-    m = discretizer.reduce_collocation_points(m, var=m.Fr, ncp=1, contset=m.t)
-
+    discretizer.apply_to(m, nfe=nSamples-1, ncp=3, scheme='LAGRANGE-RADAU')
+    
     return m
 
-def actualizar_DME(m, acc, per, med, MV=2, Nd=2, Nm=4, Ne=4, tSample=0.5):
+def actualizar_DME(m, acc, per, med, Qdu, du, Theta_ant, v, error, MV=2, Nd=2, Nm=4, Ndme=4, tSample=0.5):
     t_fe = m.t._fe
-    t_MHE = [val for val in m.t]
+    t_DME = [val for val in m.t]
     # Actualización en los elementos finitos
     for i, t in enumerate(t_fe):
         # Variables manipuladas
         for j in range(0,3):
-            if t<(Ne*tSample):
-                idx = t_MHE[t_MHE.index(t)+j]
-            elif t==Ne*tSample:
-                idx = t_MHE[-1]
+            if t<(Ndme*tSample):
+                idx = t_DME[t_DME.index(t)+j]
+            elif t==Ndme*tSample:
+                idx = t_DME[-1]
             # Variables manipuladas
             m.q[idx] = acc[MV*i]
             m.Fr[idx] = acc[MV*i+1]
@@ -217,55 +208,61 @@ def actualizar_DME(m, acc, per, med, MV=2, Nd=2, Nm=4, Ne=4, tSample=0.5):
             m.Cb_m[idx] = med[Nm*i+1]
             m.T_m[idx] = med[Nm*i+2]
             m.Tc_m[idx] = med[Nm*i+3]
+    
+    # Esfuerzos de control
+    m.Qdu = Qdu
+    m.du = du
 
     # Actualización de las variables de decisión anteriores
-    # Vector de perturbaciones
+    # Vector de Thetas
+    for j in range(Ndme):
+        m.Theta[0,j] = Theta_ant[MV*(j-1)]
+        m.Theta[1,j] = Theta_ant[MV*(j-1)+1]
+
     for i in range(0, Nm):
+        m.v[i] = v[i]
+        m.error[i] = error[i]
+
+"""     for i in range(0, Nm):
         m.v_ant[i] = m.v[i].value
     # Estimaciones iniciales anteriores
     m.Ca_ant = m.Ca[m.t.first()].value
     m.Cb_ant = m.Cb[m.t.first()].value
     m.T_ant = m.T[m.t.first()].value
-    m.Tc_ant = m.Tc[m.t.first()].value 
+    m.Tc_ant = m.Tc[m.t.first()].value
+    # Pesos de la función de costo
+    m.beta_xv = beta_xv
+    m.beta_x_ant = beta_x_ant """
 
+def ejecutar_DME(m_DME, du_k, beta,tSample):
+    solver = SolverFactory('ipopt')
+    solver.options['tol'] = 1e-4
+    solver.options['linear_solver'] = 'ma57'
+    results = solver.solve(m_DME)        # Llamada al solver
+
+    Theta = [None]*6
+    Theta[0] = m_DME.Theta[0].value
+    Theta[1] = m_DME.Theta[1].value
+    Theta[2] = m_DME.Theta[2].value
+    Theta[3] = m_DME.Theta[3].value
+    Theta[4] = m_DME.Theta[4].value
+    Theta[5] = m_DME.Theta[5].value
+    
+    # Calculo de Lambda
+    Lambda = [None]*2
+    Lambda[0] = Theta[4] + 2*du_k[0]*beta[0]
+    Lambda[1] = Theta[5] + 2*du_k[1]*beta[1]
+
+    return Lambda, Theta
+ 
 def graficar_DME(m_DME):
     fig, axs = plt.subplots(3, 2, sharex=True, figsize=(12, 6))
 
-    axs[0, 0].plot(list(m_DME.t), [value(m_DME.Ca[x]) for x in m_DME.t], 'b', label='Ca')
+    # Figura con J_modificado, J_real
+    axs[0, 0].plot(list(m_DME.t), [value(m_DME.J_modified[x]) for x in m_DME.t], 'b', label='Ca')
     axs[0, 0].legend()
-    axs[0, 0].set_title('Concentración A')
-    axs[0, 0].set_ylabel('Cocentración [mol/L]')
-
-    axs[0, 1].plot(list(m_DME.t), [value(m_DME.Cb[x]) for x in m_DME.t], 'b', label='Cb')
-    axs[0, 1].axhline(3)
-    axs[0, 1].legend()
-    axs[0, 1].set_title('Concentración B')
-    axs[0, 1].set_ylabel('Cocentración [mol/L]')
-
-    axs[1, 0].plot(list(m_DME.t), [value(m_DME.T[x]) for x in m_DME.t], 'b', label='T')
-    axs[1, 0].axhline(30)
-    axs[1, 0].legend()
-    axs[1, 0].set_title('Temperatura del Reactor')
-    axs[1, 0].set_ylabel('Temperatura [ºC]')
-
-    axs[1, 1].plot(list(m_DME.t), [value(m_DME.Tc[x]) for x in m_DME.t], 'b', label='Tc')
-    axs[1, 1].legend()
-    axs[1, 1].set_title('Temperatura del serpentín')
-    axs[1, 1].set_ylabel('Temperatura [ºC]')
-
-    #axs[2, 0].step(tiempo, [value(m.q[x]) for x in tiempo], 'b', label='T')
-    axs[2, 0].step(list(m_DME.t), [value(m_DME.q[x]) for x in m_DME.t], 'b', label='T')
-    axs[2, 0].legend()
-    axs[2, 0].set_title('Caudal de Reactivos')
-    axs[2, 0].set_ylabel('Caudal [L/min]')
-    axs[2, 0].set_xlabel('Tiempo [min]')
-
-    #axs[2, 1].step(tiempo, [value(m.Fr[x]) for x in tiempo], 'b', label='Tc')
-    axs[2, 1].step(list(m_DME.t), [value(m_DME.Fr[x]) for x in m_DME.t], 'b', label='Tc')
-    axs[2, 1].legend()
-    axs[2, 1].set_title('Caudal de Refrigerante')
-    axs[2, 1].set_ylabel('Caudal [L/min]')
-    axs[2, 1].set_xlabel('Tiempo [min]')
+    axs[0, 0].set_title('Costos')
+    axs[0, 0].set_ylabel('Costo modificado')    
 
     plt.show()
 
