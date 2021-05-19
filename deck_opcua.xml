@@ -258,7 +258,7 @@
 <UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=beta_xN" BrowseName="4:beta_xN" UserAccessLevel="3" AccessLevel="3">
   <DisplayName>beta_xN</DisplayName>
   <Value>
-    <uax:Double>1</uax:Double>
+    <uax:Double>1.0</uax:Double>
   </Value>
      <References>
   <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
@@ -267,7 +267,7 @@
 <UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=beta_xv" BrowseName="4:beta_xv" UserAccessLevel="3" AccessLevel="3">
   <DisplayName>beta_xv</DisplayName>
   <Value>
-    <uax:Double>0.1</uax:Double>
+    <uax:Double>1.0</uax:Double>
   </Value>
      <References>
   <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
@@ -429,7 +429,7 @@
 <UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=mu_J" BrowseName="4:mu_J" UserAccessLevel="3" AccessLevel="3">
   <DisplayName>mu_J</DisplayName>
   <Value>
-    <uax:Double>0.5</uax:Double>
+    <uax:Double>1.0</uax:Double>
   </Value>
      <References>
   <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
