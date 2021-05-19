@@ -59,7 +59,7 @@ async def main():
                                     Node written: uFr1 = {controlador.uFr1:.3f}')
                     # Falta escribir todas las variables del controlador al servidor
                     await controlador.escribir_variables(server)
-                await server.write_attribute_value(command_run.nodeid, ua.DataValue(0))
+                await server.write_attribute_value(server.get_node("ns=6;s=command_run").nodeid, ua.DataValue(0))
                 _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: command_run = 0')
 
 if __name__ == "__main__":
