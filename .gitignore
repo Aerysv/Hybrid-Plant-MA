@@ -2,3 +2,6 @@
 /figuras/
 /__pycache__/
 0_borrar.py
+*.pdf
+*.csv
+*.txt
