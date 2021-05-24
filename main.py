@@ -199,7 +199,7 @@ solver.options['tol'] = 1e-4
 solver.options['linear_solver'] = 'ma57'
 
 t0 = time.time()    # Borrar
-for k_sim in range(0, 401): #121 241 481
+for k_sim in range(0, 121): #121 241 481
 
     # Actualizar vectores
     acc = [value(m_SIM.q), value(m_SIM.Fr)]
