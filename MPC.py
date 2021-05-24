@@ -192,7 +192,16 @@ def ejecutar_MPC(m_MPC, tSample):
     solver.options['linear_solver'] = 'ma57'
     results = solver.solve(m_MPC)        # Llamada al solver
 
-    return value(m_MPC.q[tSample]), value(m_MPC.Fr[tSample])
+    q = [None]*3
+    q[0] = m_MPC.q[tSample].value
+    q[1] = m_MPC.q[2*tSample].value
+    q[2] = m_MPC.q[3*tSample].value
+    Fr = [None]*3
+    Fr[0] = m_MPC.Fr[tSample].value
+    Fr[1] = m_MPC.Fr[2*tSample].value
+    Fr[2] = m_MPC.Fr[3*tSample].value
+
+    return q, Fr
 
 def graficar_MPC(m_MPC):
     fig, axs = plt.subplots(3, 2, sharex=True, figsize=(12, 6))

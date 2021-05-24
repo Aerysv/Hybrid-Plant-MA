@@ -7,8 +7,30 @@ from MPC import *
 from simulacion import *
 from calculo_grad import *
 from nlms import *
+from rels import *
 import MHE as MHE
+import DME as DME
 
+def graficar_mod(TIME, LAM1, LAM2):
+    fig, axs = plt.subplots(2, 1, sharex=True, figsize=(6, 6))
+
+    axs[0].plot(TIME, LAM1, 'b', label='Lambda 1')
+    #axs[0].scatter(TIME[-1], LAM1[-1], c='b')
+    #axs[0].text(TIME[-1], LAM1[-1]*1.002, f'{LAM1[-1]:.2f}', fontsize='small')
+    axs[0].set_ylim(-50, 50)
+    axs[0].legend()
+    axs[0].set_title('Lambda 1')
+    
+    axs[1].plot(TIME, LAM2, 'b', label='Lambda 2')
+    #axs[1].scatter(TIME[-1], LAM2[-1,0], c='b')
+    #axs[1].text(TIME[-1], LAM2[-1,0]*1.002, f'{LAM2[-1,0]:.2f}', fontsize='small')
+    axs[1].set_ylim(-6, 6)
+    axs[1].legend()
+    axs[1].set_title('Lambda 2')
+
+def graficar_DME(TIME, Jp_DME, J_model_DME, J_modif_DME):
+    plt.plot(TIME, Jp_DME,'g', TIME, J_model_DME, 'r', TIME, J_modif_DME,'b')
+  
 def graficar_costo(TIME, J, U):
     fig, axs = plt.subplots(3, 1, sharex=True, figsize=(6, 6))
 
@@ -43,7 +65,7 @@ Nx = 4   # Number of states of the model
 Nm = 4   # Number of measured process variables
 MV = 2   # Number of manipulated variables of the MPC
 Ne = 4   # Number of (past and current) samples used in MHE
-Ndme = 3  # Number of (past and current) samples used in DME
+Ndme = 4  # Number of (past and current) samples used in DME
 PV = 2   # Number of process variables with Upper/lower constraints
 
 # PARAMETROS DEL CONTROLADOR
@@ -68,16 +90,24 @@ pFr = 3.0  # (euro/mol)
 # Parametros MA
 conMA = True
 K = 1  # filtro de los modificadores
-opcion_grad = 2             # 1- Exacto, 2- NLMS, 3- DME
+opcion_grad = 3             # 1- Exacto, 2- NLMS, 3- RELS , 4 -DME
 flagMHE = True
 
 # MHE
 beta_xv = 1
 beta_x_ant = 1
 
-# NLMS
+# NLMS & RELS
 theta_J_ant = [0.0]*15
-mu_J = 1
+
+# NLMS
+mu_J = 1.0
+
+# RELS
+alpha = 0.90  # alpha = 0.2 - oscila mucho
+I = np.eye(15,15)
+sigma_inv_cero = 1/alpha*I
+sigma_inv_ant = sigma_inv_cero
 
 # Vectores de medidas actuales y pasadas, parametros
 acc = [None]*MV  # Valores actuales de las acciones de control
@@ -101,9 +131,15 @@ du_k = [None]*MV		    # Cambios  de u para Lambda en k
 # Acciones de control
 uq1 = 0.75
 uFr1 = 8.51
+uq = [0.75]*3
+uFr = [8.51]*3
 u_new = [uq1, uFr1]
 v_new = [0.0]*Nx  # valores estimados de las perturbaciones
 Lambda = [0.0, 0.0]                            # Modificadores funcion costo
+Theta_ant = [0.0]*(MV*Ndme)
+j_DME = 0.0
+j_m_DME = 0.0
+j_modified_DME = 0.0
 
 # INICIALIZACIÓN
 Ca = 0.06
@@ -114,7 +150,7 @@ T0 = 20.0
 Tc0 = 20.0
 v_ini = [0.0]*Nx  # Inicializacion vector de perturbaciones
 error = [0.0]*Nx
-Q_du_k = 0.0
+Qdu_k = 0.0
 
 # ---------BLOCO INIT --------------------
 # constraints MVs
@@ -138,12 +174,22 @@ m_MPC = crear_MPC()
 m_SIM = crear_SIM(tSample)
 if flagMHE:
     m_MHE = MHE.crear_MHE()
+if opcion_grad == 4:
+    m_DME = DME.crear_DME()
 
 profiles = np.array([[Ca, Cb, T, Tc]])
-TIME = np.array([0.0])            # Array de tiempo para graficar
-Y = np.array([[0.0, 0.0, 0.0, 0.0]])    # Array de estados para graficar
-U = np.array([[0.0, 0.0]])          # Array de q y Fr para graficar
-J = np.array([0.0])               # Array de J para graficar
+TIME = np.array([0.0])                   # Array de tiempo para graficar
+Y = np.array([[0.0, 0.0, 0.0, 0.0]])     # Array de estados para graficar
+U = np.array([[0.0, 0.0]])               # Array de q y Fr para graficar
+J = np.array([0.0])                      # Array de J para graficar
+J_modelo = np.array([0.0])               # Array de J del modelo para graficar 
+J_modificado = np.array([0.0])           # Array de J modificado para graficar 
+LAM1 = np.array([0.0])                   # Array de modificador para graficar
+LAM2 = np.array([0.0])                   # Array de modificador para graficar
+
+Jp_DME = np.array([0.0])                 # Array de costo medido para graficar
+J_model_DME = np.array([0.0])            # Array de costo del modelo para graficar
+J_modif_DME = np.array([0.0])            # Array de costo modificado para graficar
 
 # Iteracion de MA
 k_MA = 0
@@ -153,7 +199,7 @@ solver.options['tol'] = 1e-4
 solver.options['linear_solver'] = 'ma57'
 
 t0 = time.time()    # Borrar
-for k_sim in range(0, 481): #121 241 481
+for k_sim in range(0, 401): #121 241 481
 
     # Actualizar vectores
     acc = [value(m_SIM.q), value(m_SIM.Fr)]
@@ -206,7 +252,7 @@ for k_sim in range(0, 481): #121 241 481
     for i in range(1, Ndme):
         Qdu_ant[i-1] = Qdu_ant[i]
 
-    Qdu_ant[Ndme-1] = Q_du_k
+    Qdu_ant[Ndme-1] = Qdu_k
 
 # Revisar que estas iteraciones si estén funcionando bien
     for i in range(1, MV+1):
@@ -243,48 +289,70 @@ for k_sim in range(0, 481): #121 241 481
 
             Lambda = filtro_mod(grad_p, grad_m, K, Lambda, k_MA)
         
-        elif (opcion_grad == 2) & (k_sim > Ne+1):
+        elif ((opcion_grad == 2) or (opcion_grad == 3)) & (k_sim > Ne+1):
             
             grad_m = grad_m_DD(med, per, aux, v_new, error, config)
 
-            print("Estimando grad proceso por NLMS")
             # Valores más actuales están a finales del vector
-            # Para NLMS sólo necesito los 3 últimos valores
+            # Para NLMS/RELS sólo necesito los 3 últimos valores
             # El mayor indice tiene el valor más actual
             J_p_ant[0] = J_y_g_ant[3]  # indices son: 0, 3, 6, 9, 12
             J_p_ant[1] = J_y_g_ant[6]
             J_p_ant[2] = J_y_g_ant[9]
-            '''
-            J_costo_real = acc[0]*(pB*med[1] - pA*5) - pFr*acc[1]
 
-            J_y_g = [J_costo_real, 0.0, 0.0]
-            '''
-            theta = NLMS(u_ant, J_p_ant, J_y_g[0], theta_J_ant, mu_J)
-            theta_J_ant = theta
+            if (opcion_grad == 2):
+                print("Estimando grad proceso por NLMS")
+                theta = NLMS(u_ant, J_p_ant, J_y_g[0], theta_J_ant, mu_J)
+                theta_J_ant = theta
+            elif (opcion_grad == 3):
+                print("Estimando grad proceso por RELS")
+                theta,  sigma_inv = RELS(u_ant, J_p_ant, J_y_g[0], theta_J_ant, sigma_inv_ant, alpha)
+                theta_J_ant = theta
+                sigma_inv_ant = sigma_inv
+
             grad_p = [theta[0], theta[1]]
             Lambda = filtro_mod(grad_p, grad_m,K,Lambda,k_MA)
 
-        elif(opcion_grad == 3):
-            print("Calculando mod por DME")
-            Q_du_k = 0.0  # beta[1]*((uq[1]-u_ant[MV*(Ndme-1)+1])**2  + SUM( i IN 2,Nu;(uq[i]-uq[i-1])**2 )) \
-            # + beta[2]*((uFr[1]-u_ant[MV*(Ndme-1)+2])**2 + SUM( i IN 2,Nu;(uFr[i]-uFr[i-1])**2 ))
-            du_k[1] = (uq1 - u_ant[MV*(Ndme-1)+1])
-            du_k[2] = (uFr1 - u_ant[MV*(Ndme-1)+2])
+        elif(opcion_grad == 4) & (k_sim > Ne+1):
+            print("Calculando modificadores por DME")
+            DME.actualizar_DME(m_DME, acc_ant, per_ant, med_ant, Qdu_ant, du_ant, Theta_ant, v_new, error)            
+            Lambda_new, Theta = DME.ejecutar_DME(m_DME, du_k, beta,tSample)
+            Theta_ant = Theta
+
+            for i in range(0, 2):
+                Lambda[i] = Lambda[i]*(1-K) + K*Lambda_new[i]
+
+            j_DME = value(m_DME.J_proc[tSample])
+            j_m_DME = value(m_DME.J_modelo[tSample])
+            j_modified_DME = value(m_DME.J_modified[tSample])
     else:
         Lambda = [0.0, 0.0]
+        j_DME = J_y_g[0]
+        j_m_DME = 0.0
+        j_modified_DME = 0.0
 
     # LLamada al controlador
     # ___________________________________________________________________
     actualizar_MPC(m_MPC, uq1, uFr1, state, v_new, error, Lambda)
-    uq1, uFr1 = ejecutar_MPC(m_MPC, tSample)
+    uq, uFr = ejecutar_MPC(m_MPC, tSample)
+    uq1 = uq[0]
+    uFr1 = uFr[0]
     u_new = [uq1, uFr1]
     # _________________________________________________________controlador
+
+    # Actualizando vectores para DME
+    # ___________________________________________________________________
+    if(opcion_grad == 4):
+        Qdu_k = beta[0]*((uq[0]-u_ant[MV*Ndme-2])**2  + (uq[1]-uq[0])**2 + (uq[2]-uq[1])**2 ) + beta[1]*((uFr[1]-u_ant[MV*Ndme-1])**2 +  (uFr[1]-uFr[0])**2 + (uFr[2]-uFr[1])**2 )
+        du_k[0] = (uq[0] -  u_ant[MV*Ndme-2])
+        du_k[1] = (uFr[0] - u_ant[MV*Ndme-1])
+    # __________________________________________________________DME
 
     # Llamada al simulador
     # ___________________________________________________________________
     m_SIM.Ca[0.0] = profiles[-1, 0]
     m_SIM.Cb[0.0] = profiles[-1, 1]
-    m_SIM.T[0.0] = profiles[-1, 2]
+    m_SIM.T[0.0]  = profiles[-1, 2]
     m_SIM.Tc[0.0] = profiles[-1, 3]
 
     m_SIM.q = uq1
@@ -314,6 +382,17 @@ for k_sim in range(0, 481): #121 241 481
     j = np.ones(len(tsim))*J_y_g[0]
     J = np.append(J, j)
 
+    # Graficar valores de modificadores estimados
+    mod1 = np.ones(len(tsim))*Lambda[0]
+    mod2 = np.ones(len(tsim))*Lambda[1]
+    LAM1 = np.append(LAM1,mod1)
+    LAM2 = np.append(LAM2,mod2)
+
+    # Graficar valores de costos en DME
+    Jp_DME = np.append(Jp_DME,np.ones(len(tsim))*j_DME)
+    J_model_DME = np.append(J_model_DME,np.ones(len(tsim))*j_m_DME)
+    J_modif_DME = np.append(J_modif_DME,np.ones(len(tsim))*j_modified_DME)        
+
 t1 = time.time()    # Borrar
 
 print(f'Tiempo total: {(t1-t0):.2f} segundos')
@@ -322,10 +401,25 @@ TIME = np.delete(TIME, 0)
 Y = np.delete(Y, 0, axis=0)
 U = np.delete(U, 0, axis=0)
 J = np.delete(J, 0)
+LAM1 = np.delete(LAM1,0)
+LAM2 = np.delete(LAM2,0)
+Jp_DME = np.delete(Jp_DME,0)
+J_model_DME = np.delete(J_model_DME,0)
+J_modif_DME = np.delete(J_modif_DME,0)
 
 graficar_sim(TIME, Y, U)
 plt.savefig(f"figuras/Estados_conMA_{conMA}_opcion_{opcion_grad}.pdf")
-# plt.show()
+plt.show()
 graficar_costo(TIME, J, U)
 plt.savefig(f"figuras/Costo_conMA_{conMA}_opcion_{opcion_grad}.pdf")
-# plt.show()
+plt.show()
+
+if(conMA == True):
+    graficar_mod(TIME, LAM1, LAM2)
+    plt.savefig(f"figuras/Modificadores_opcion_{opcion_grad}.pdf")
+    plt.show()
+
+if (opcion_grad==4):
+    graficar_DME(TIME, Jp_DME, J_model_DME, J_modif_DME)
+    plt.savefig(f"figuras/Costos_DME.pdf")
+    plt.show()
