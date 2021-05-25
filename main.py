@@ -90,7 +90,7 @@ pFr = 3.0  # (euro/mol)
 # Parametros MA
 conMA = True
 K = 1  # filtro de los modificadores
-opcion_grad = 3             # 1- Exacto, 2- NLMS, 3- RELS , 4 -DME
+opcion_grad = 2             # 1- Exacto, 2- NLMS, 3- RELS , 4 -DME
 flagMHE = True
 
 # MHE
@@ -101,10 +101,10 @@ beta_x_ant = 1
 theta_J_ant = [0.0]*15
 
 # NLMS
-mu_J = 1.0
+mu_J = 1.8
 
 # RELS
-alpha = 0.90  # alpha = 0.2 - oscila mucho
+alpha = 0.86  # alpha = 0.2 - oscila mucho
 I = np.eye(15,15)
 sigma_inv_cero = 1/alpha*I
 sigma_inv_ant = sigma_inv_cero
@@ -191,6 +191,12 @@ Jp_DME = np.array([0.0])                 # Array de costo medido para graficar
 J_model_DME = np.array([0.0])            # Array de costo del modelo para graficar
 J_modif_DME = np.array([0.0])            # Array de costo modificado para graficar
 
+# Borrar
+V_MHE = np.array([[0.0, 0.0, 0.0, 0.0]])
+STATES_MHE = np.array([[0.0, 0.0, 0.0, 0.0]])
+STATES_SIM = np.array([[0.0, 0.0, 0.0, 0.0]])
+# ________________Borrar
+
 # Iteracion de MA
 k_MA = 0
 
@@ -199,7 +205,7 @@ solver.options['tol'] = 1e-4
 solver.options['linear_solver'] = 'ma57'
 
 t0 = time.time()    # Borrar
-for k_sim in range(0, 121): #121 241 481
+for k_sim in range(0, 241): #121 241 481
 
     # Actualizar vectores
     acc = [value(m_SIM.q), value(m_SIM.Fr)]
@@ -367,6 +373,13 @@ for k_sim in range(0, 121): #121 241 481
     state_real[3] = profiles[-1, 3]
 
     # ___________________________________________________________simulador
+    # Borrar
+    for i in range(4):
+        print(f'v_new[{i:d}] = {v_new[i]:.2f}')
+    for i in range(4):
+        print(f'state_real[{i:d}] = {state_real[i]:.2f}')
+        print(f'state_MHE[{i:d}] = {state[i]:.2f}')
+    # __________Borrar
 
     # Reporte y gráficas
     print(f'TIME = {k_sim*tSample}')
@@ -376,8 +389,8 @@ for k_sim in range(0, 121): #121 241 481
     TIME = np.append(TIME, tsim+TIME[-1])
     Y = np.append(Y, profiles, axis=0)
     # Debemos crear un array de q y Fr para graficar
-    u1 = np.ones(len(tsim))*value(m_MPC.q[tSample])
-    u2 = np.ones(len(tsim))*value(m_MPC.Fr[tSample])
+    u1 = np.ones(len(tsim))*m_MPC.q[tSample].value
+    u2 = np.ones(len(tsim))*m_MPC.Fr[tSample].value
     U = np.append(U, np.stack((u1, u2), axis=1), axis=0)
     j = np.ones(len(tsim))*J_y_g[0]
     J = np.append(J, j)
@@ -409,17 +422,18 @@ J_modif_DME = np.delete(J_modif_DME,0)
 
 graficar_sim(TIME, Y, U)
 plt.savefig(f"figuras/Estados_conMA_{conMA}_opcion_{opcion_grad}.pdf")
-plt.show()
+#plt.show()
 graficar_costo(TIME, J, U)
 plt.savefig(f"figuras/Costo_conMA_{conMA}_opcion_{opcion_grad}.pdf")
-plt.show()
+#plt.show()
 
 if(conMA == True):
     graficar_mod(TIME, LAM1, LAM2)
     plt.savefig(f"figuras/Modificadores_opcion_{opcion_grad}.pdf")
-    plt.show()
+    #plt.show()
 
 if (opcion_grad==4):
     graficar_DME(TIME, Jp_DME, J_model_DME, J_modif_DME)
     plt.savefig(f"figuras/Costos_DME.pdf")
-    plt.show()
+    #plt.show()
+plt.clf()
