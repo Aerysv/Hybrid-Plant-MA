@@ -71,7 +71,7 @@ def crear_MHE():
     # Declaración de las variables de decisión
     # Variables de decisión MHE
     m.error = Var([0,1,2,3], initialize=0)
-    m.v = Var([0,1,2,3], initialize=0, bounds=(-0.5, 0.5))
+    m.v = Var([0,1,2,3], initialize=0, bounds=(-2, 2))
 
     # Declaración de las variables dependientes
     m.Ca = Var(m.t, within=PositiveReals)
