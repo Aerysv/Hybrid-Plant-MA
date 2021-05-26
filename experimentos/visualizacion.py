@@ -60,7 +60,7 @@ for i in range(2):
         #axs[i, j].axvline(36.4, c='0.8', ls='--')
         #axs[i, j].axvline(91.11, c='0.8', ls='--')
         axs[i, j].axvline(54.71, c='0.8', ls='--')
-plt.savefig('Figura_1.pdf')
+plt.savefig('experimentos/Figura_1.pdf')
 #plt.show()
 
 fig, axs = plt.subplots(2, 2, figsize=(20, 10))
@@ -118,6 +118,6 @@ for i in range(2):
         #axs[i, j].axvline(91.11, c='0.8', ls='--')
         axs[i, j].axvline(54.71, c='0.8', ls='--')
 
-plt.savefig('Figura_2.pdf')
+plt.savefig('experimentos/Figura_2.pdf')
 plt.show()
 #fig, axs = plt.subplots(2, 2, sharex=True, figsize=(20, 10))
