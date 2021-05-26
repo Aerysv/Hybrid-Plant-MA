@@ -250,7 +250,9 @@ class Controlador():
         # LLamada al controlador
         # ___________________________________________________________________
         MPC.actualizar_MPC(s.m_MPC, s.uq1, s.uFr1, s.state, s.v_new, s.error, s.Lambda)
-        s.uq1, s.uFr1 = MPC.ejecutar_MPC(s.m_MPC, s.tSample) 
+        s.uq, s.uFr = MPC.ejecutar_MPC(s.m_MPC, s.tSample)
+        s.uq1 = s.uq[0]
+        s.uFr1 = s.uFr[0]
         s.u_new = [s.uq1, s.uFr1]
         # _________________________________________________________controlador
 
