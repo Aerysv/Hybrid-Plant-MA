@@ -64,6 +64,8 @@ class Controlador():
         s.aux = [None]*4
         s.config = [None]*5
 
+        s.grad_m = [0.0, 0.0]
+        s.grad_p = [0.0, 0.0]
 
 
         s.J_y_g_ant = [None]*3*(s.Ne+1)
