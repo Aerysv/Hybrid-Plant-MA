@@ -99,7 +99,7 @@ def grad_p_DD(med, aux):
     J_planta[2] = costo_planta_steady(m_Proc)
 
     grad_m[0] = (J_planta[1] - J_planta[0])/delta
-    grad_m[1] = (J_planta[2] - J_planta[0])/delta	
+    grad_m[1] = (J_planta[2] - J_planta[0])/delta
     return grad_m
 
 def filtro_mod(grad_p, grad_m, K, Lambda_ant, k_MA):
