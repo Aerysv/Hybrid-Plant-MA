@@ -247,6 +247,7 @@ class Controlador():
                 s.du_k[2] = (s.uFr1 - s.u_ant[s.MV*(s.Ndme-1)+2])
         else:
             # Sin MA
+            s.k_MA = 0
             s.Lambda = [0.0, 0.0]
 
         # LLamada al controlador
