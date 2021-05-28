@@ -47,6 +47,7 @@ async def main():
                 controlador.actualizar_arrays()
                 ControlFlag = await server.get_node("ns=4;s=ControlFlag").read_value()
                 _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node read: Control_Flag = {ControlFlag}')
+                
                 if ControlFlag:
                     controlador.ejecutar()
                     await server.write_attribute_value(server.get_node("ns=4;s=uq[1]").nodeid,
