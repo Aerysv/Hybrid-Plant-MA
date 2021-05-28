@@ -18,7 +18,7 @@ class Controlador():
         s.flagMHE = True
         s.opcion_grad = 2             # 1- Exacto, 2- NLMS, 3- DME
         s.tSample = 0.5
-        s.K = 1
+        s.K = 1.0
         s.k_MA = 0
         s.Lambda = [0.0, 0.0]
         s.mu_J = 1.8
@@ -123,8 +123,8 @@ class Controlador():
         s.config[0] = await server.get_node("ns=4;s=pA").read_value()   # pA
         s.config[1] = await server.get_node("ns=4;s=pB").read_value()   # pB
         s.config[2]= await server.get_node("ns=4;s=pFr").read_value()   # pFr
-        s.config[3] = await server.get_node("ns=4;s=beta[1]").get_value()   # beta1
-        s.config[4] = await server.get_node("ns=4;s=beta[2]").get_value()   # beta2
+        s.config[3] = await server.get_node("ns=4;s=beta[1]").read_value()   # beta1
+        s.config[4] = await server.get_node("ns=4;s=beta[2]").read_value()   # beta2
 
         s.acc[0] = await server.get_node("ns=4;s=q").read_value()   # q
         s.acc[1] = await server.get_node("ns=4;s=Fr").read_value()  # Fr
@@ -142,7 +142,7 @@ class Controlador():
         s.aux[2] = s.per[0] # T0
         s.aux[3] = s.per[1] # Tc0
         # J_costo_real = q*(pB*Cb - pA*Ca0) - pFr*Fr	
-        s.J_y_g[0] = s.acc[0]*(s.config[1]*s.med[1] - s.config[0]*5) - s.config[2]*s.acc[1]
+        s.J_y_g[0] = s.acc[0]*(s.config[1]*s.med[1] - s.config[0]*5.0) - s.config[2]*s.acc[1]
         s.J_y_g[1] = 0  # -- -T + LiminfT
         s.J_y_g[2] = 0  # --T - LimsupT
 
