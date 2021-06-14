@@ -130,6 +130,6 @@ for i in range(2):
         axs[i, j].set_xlim(0, 58)
         #axs[i, j].axvline(58.0, c='0.8', ls='--')
 
-plt.savefig('experimentos/Figura_2_sinMA.pdf')
+plt.savefig('experimentos/Figura_2_sinMA.svg')
 plt.show()
 #fig, axs = plt.subplots(2, 2, sharex=True, figsize=(20, 10))
