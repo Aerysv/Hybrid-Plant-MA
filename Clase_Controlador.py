@@ -5,9 +5,11 @@ from pyomo.environ import *
 import logging
 import numpy as np
 import MPC as MPC
-import calculo_grad as grd
-import nlms as nlms
+from calculo_grad import *
+from rels import *
+from nlms import *
 import MHE as MHE
+import DME as DME
 
 _logger = logging.getLogger("Server")
 
@@ -22,11 +24,15 @@ class Controlador():
         s.k_MA = 0
         s.Lambda = [0.0, 0.0]
         s.mu_J = 1.8
+        s.mu_g1 = 1.8
         s.theta_J_ant = [0.0]*15
+        s.theta_g_ant = [0.0]*15
         # Iniaciación es
         s.m_MPC = MPC.crear_MPC()
         if s.flagMHE:
             s.m_MHE = MHE.crear_MHE()
+        if s.opcion_grad == 4:
+            s.m_DME = DME.crear_DME()
         # Variables de configuración
         s.tSample = 0.5
         s.Nu = 3   # Control horizon (number of sampling periods)
@@ -37,6 +43,8 @@ class Controlador():
         s.Ne = 4   # Number of (past and current) samples used in MHE
         s.Ndme = 3  # Number of (past and current) samples used in DME
         s.PV = 2   # Number of process variables with Upper/lower constraints
+
+        s.LimsupT = 34.0
 
         s.Lu_i = [None]*s.MV
         s.Lu_s = [None]*s.MV
@@ -64,18 +72,29 @@ class Controlador():
         s.aux = [None]*4
         s.config = [None]*5
 
-        s.grad_m = [0.0, 0.0]
-        s.grad_p = [0.0, 0.0]
-
+        # RELS
+        s.alpha = 0.86  # alpha = 0.2 - oscila mucho
+        s.I = np.eye(15,15)
+        s.sigma_inv_cero = 1/s.alpha*s.I
+        s.sigma_inv_ant = s.sigma_inv_cero
 
         s.J_y_g_ant = [None]*3*(s.Ne+1)
-        s.J_y_g = [None]*3
-        s.J_p_ant = [None]*3
+        s.J_y_g = [None]*4
+        s.J_g1_ant = [None]*4
+        s.J_p_ant = [None]*4
         s.u_ant = [None]*(s.MV*s.Ne)
         s.Qdu_ant = [0.0]*s.Ndme	    # Esfuerzos de control anteriores
         s.Q_du_k = 0.0
         s.du_ant = [0.0]*(s.MV*s.Ndme)   # Cambios anteriores de u para Lambda
         s.du_k = [None]*s.MV		    # Cambios  de u para Lambda en k
+
+        s.Lambda = [0.0, 0.0]                        # Modificadores funcion costo
+        s.Gamma = [0.0, 0.0]                         # Modificadores restriccion primer orden
+        s.Epsilon = 0.0                            # Modificadores restriccion cero orden
+        s.Theta_ant = [0.0]*(s.MV*s.Ndme)
+        s.j_DME = 0.0
+        s.j_m_DME = 0.0
+        s.j_modified_DME = 0.0
 
     async def escribir_variables(s, server):
         # Los arrays en el espacio de nombres del servidor empiezan en 1, y no en cero como en Python
@@ -211,48 +230,92 @@ class Controlador():
         # _________________________________________________________________MHE
 
         # Calculo de modificadores con MA
-        if s.conMA == True:
+        if (s.conMA == True):
 
-            s.k_MA += 1
+            s.k_MA = s.k_MA + 1
 
-            if s.opcion_grad == 1:
+            if (s.opcion_grad == 1):
                 print("Calculando grad exactos")
-                s.grad_m = grd.grad_m_DD(s.med, s.per, s.aux, s.v_new, s.error, s.config)
-                s.grad_p = grd.grad_p_DD(s.med, s.aux)
+                s.grad_m, s.g1_m = grad_m_DD(s.med, s.per, s.aux, s.v_new, s.error, s.config)
+                s.grad_p, s.g1_p = grad_p_DD(s.med, s.aux)
 
-                s.Lambda = grd.filtro_mod(s.grad_p, s.grad_m, s.K, s.Lambda, s.k_MA)
+                s.Lambda = filtro_mod([s.grad_p[0], s.grad_p[1]], [s.grad_m[0], s.grad_m[1]], s.K, s.Lambda, s.k_MA)
+                s.Gamma = filtro_mod([s.grad_p[2], s.grad_p[3]], [s.grad_m[2], s.grad_m[3]], s.K, s.Gamma, s.k_MA)
+
+                if (s.k_MA == 1):
+                    for i in range(0, 2):
+                        Epsilon = s.g1_p - s.g1_m
+                else:
+                    for i in range(0, 2):
+                        Epsilon = Epsilon*(1-s.K) + s.K*(s.g1_p - s.g1_m)            
             
-            elif s.opcion_grad == 2:
+            elif ((s.opcion_grad == 2) or (s.opcion_grad == 3)):
+                
+                s.grad_m, s.g1_m  = grad_m_DD(s.med, s.per, s.aux, s.v_new, s.error, s.config)
 
-                s.grad_m = grd.grad_m_DD(s.med, s.per, s.aux, s.v_new, s.error, s.config)
-
-                print("Estimando grad proceso por NLMS")
                 # Valores más actuales están a finales del vector
-                # Para NLMS sólo necesito los 3 últimos valores
+                # Para NLMS/RELS sólo necesito los 3 últimos valores
                 # El mayor indice tiene el valor más actual
-                s.J_p_ant[0] = s.J_y_g_ant[3]  # indices son: 0, 3, 6, 9, 12
-                s.J_p_ant[1] = s.J_y_g_ant[6]
-                s.J_p_ant[2] = s.J_y_g_ant[9]
+                s.J_p_ant[0] = s.J_y_g_ant[0]  # indices son: 0, 3, 6, 9, 12
+                s.J_p_ant[1] = s.J_y_g_ant[3]
+                s.J_p_ant[2] = s.J_y_g_ant[6]
+                s.J_p_ant[3] = s.J_y_g_ant[9]
 
-                theta = nlms.NLMS(s.u_ant, s.J_p_ant, s.J_y_g[0], s.theta_J_ant, s.mu_J)
-                s.theta_J_ant = theta
-                s.grad_p = [theta[0], theta[1]]
-                s.Lambda = grd.filtro_mod(s.grad_p, s.grad_m, s.K, s.Lambda, s.k_MA)
+                s.J_g1_ant[0] = s.J_y_g_ant[1]  # indices son: 1, 4, 7, 10, 13
+                s.J_g1_ant[1] = s.J_y_g_ant[4] 
+                s.J_g1_ant[2] = s.J_y_g_ant[7]
+                s.J_g1_ant[3] = s.J_y_g_ant[10]
 
-            elif s.opcion_grad == 3:
-                print("Calculando mod por DME")
-                s.Q_du_k = 0.0  # beta[1]*((uq[1]-u_ant[MV*(Ndme-1)+1])**2  + SUM( i IN 2,Nu;(uq[i]-uq[i-1])**2 )) \
-                # + beta[2]*((uFr[1]-u_ant[MV*(Ndme-1)+2])**2 + SUM( i IN 2,Nu;(uFr[i]-uFr[i-1])**2 ))
-                s.du_k[1] = (s.uq1 - s.u_ant[s.MV*(s.Ndme-1)+1])
-                s.du_k[2] = (s.uFr1 - s.u_ant[s.MV*(s.Ndme-1)+2])
+                if (s.opcion_grad == 2):
+                    print("Estimando grad proceso y restricciones por NLMS")
+                    theta = NLMS(s.u_ant, s.J_p_ant, s.J_y_g[0], s.theta_J_ant, s.mu_J)
+                    s.theta_J_ant = theta
+
+                    theta_g = NLMS(s.u_ant, s.J_g1_ant, s.J_y_g[1], s.theta_g_ant, s.mu_g1)
+                    s.theta_g_ant = theta_g
+
+                elif (s.opcion_grad == 3):
+                    print("Estimando grad proceso por RELS")
+                    theta,  sigma_inv = RELS(s.u_ant, s.J_p_ant, s.J_y_g[0], s.theta_J_ant, s.sigma_inv_ant, s.alpha)
+                    s.theta_J_ant = theta
+                    s.sigma_inv_ant = sigma_inv
+
+                s.grad_p = [theta[0], theta[1]]            
+                s.Lambda = filtro_mod(s.grad_p, [s.grad_m[0], s.grad_m[1]], s.K, s.Lambda, s.k_MA)
+
+                s.grad_g1 = [theta_g[0],theta_g[1]]
+                s.Gamma = filtro_mod(s.grad_g1, [s.grad_m[2], s.grad_m[3]], s.K, s.Gamma, s.k_MA)
+
+                s.g1_p = s.J_y_g[1] - s.LimsupT
+
+                if (s.k_MA == 1):
+                    s.Epsilon = s.g1_p - s.g1_m
+                else:
+                    s.Epsilon = s.Epsilon*(1-s.K) + s.K*(s.g1_p - s.g1_m)   
+
+            elif(s.opcion_grad == 4):
+                print("Calculando modificadores por DME")
+                DME.actualizar_DME(s.m_DME, s.acc_ant, s.per_ant, s.med_ant, s.Qdu_ant, s.du_ant, s.Theta_ant, s.v_new, s.error)            
+                s.Lambda_new, s.Theta = DME.ejecutar_DME(s.m_DME, s.du_k, [s.config[3], s.config[4]], s.tSample)
+                s.Theta_ant = s.Theta
+
+                for i in range(0, 2):
+                    s.Lambda[i] = s.Lambda[i]*(1-s.K) + s.K*s.Lambda_new[i]
+
+                s.j_DME = value(s.m_DME.J_proc[s.tSample])
+                s.j_m_DME = value(s.m_DME.J_modelo[s.tSample])
+                s.j_modified_DME = value(s.m_DME.J_modified[s.tSample])
         else:
-            # Sin MA
-            s.k_MA = 0
             s.Lambda = [0.0, 0.0]
+            s.Gamma = [0.0, 0.0]
+            s.Epsilon = 0.0
+            s.j_DME = s.J_y_g[0]
+            s.j_m_DME = 0.0
+            s.j_modified_DME = 0.0
 
         # LLamada al controlador
         # ___________________________________________________________________
-        MPC.actualizar_MPC(s.m_MPC, s.uq1, s.uFr1, s.state, s.v_new, s.error, s.Lambda)
+        MPC.actualizar_MPC(s.m_MPC, s.uq1, s.uFr1, s.state, s.v_new, s.error, s.Lambda, s.Gamma, s.Epsilon)
         s.uq, s.uFr = MPC.ejecutar_MPC(s.m_MPC, s.tSample)
         s.uq1 = s.uq[0]
         s.uFr1 = s.uFr[0]
