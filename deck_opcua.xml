@@ -102,6 +102,33 @@
   <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
   </References>
 </UAVariable>
+<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=Gamma[1]" BrowseName="4:Gamma[1]" UserAccessLevel="3" AccessLevel="3">
+  <DisplayName>Gamma[1]</DisplayName>
+  <Value>
+    <uax:Double>0</uax:Double>
+  </Value>
+     <References>
+  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
+  </References>
+</UAVariable>
+<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=Gamma[2]" BrowseName="4:Gamma[2]" UserAccessLevel="3" AccessLevel="3">
+  <DisplayName>Gamma[2]</DisplayName>
+  <Value>
+    <uax:Double>0</uax:Double>
+  </Value>
+     <References>
+  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
+  </References>
+</UAVariable>
+<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=Epsilon" BrowseName="4:Epsilon" UserAccessLevel="3" AccessLevel="3">
+  <DisplayName>Epsilon</DisplayName>
+  <Value>
+    <uax:Double>0</uax:Double>
+  </Value>
+     <References>
+  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
+  </References>
+</UAVariable>
 <UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=LiminfCb" BrowseName="4:LiminfCb" UserAccessLevel="3" AccessLevel="3">
   <DisplayName>LiminfCb</DisplayName>
   <Value>

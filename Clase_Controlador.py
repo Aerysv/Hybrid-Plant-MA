@@ -115,10 +115,15 @@ class Controlador():
             await server.write_attribute_value(server.get_node(f"ns=4;s=grad_p[{i+1}]").nodeid, ua.DataValue(s.grad_p[i]))
             # MA
             await server.write_attribute_value(server.get_node(f"ns=4;s=Lambda[{i+1}]").nodeid, ua.DataValue(s.Lambda[i]))
+            await server.write_attribute_value(server.get_node(f"ns=4;s=Gamma[{i+1}]").nodeid, ua.DataValue(s.Gamma[i]))
 
             _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: grad_m[{i+1}] = {s.grad_m[i]}')
             _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: grad_p[{i+1}] = {s.grad_p[i]}')
             _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: Lambda[{i+1}] = {s.Lambda[i]}')
+            _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: Gamma[{i+1}] = {s.Gamma[i]}')
+        
+        await server.write_attribute_value(server.get_node(f"ns=4;s=Epsilon").nodeid, ua.DataValue(s.Epsilon))
+        _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: Epsilon] = {s.Epsilon}')
 
     async def recibir_variables(s, server):
         # Tipo de control
