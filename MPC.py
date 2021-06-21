@@ -18,7 +18,7 @@ def crear_MPC():
     Ea1 = 52.1
     Ea2 = 70.0
     Ea3 = 65.0
-    dHrxn1 = -48.75
+    dHrxn1 = -28.75 #-48.75
     dHrxn2 = -34.50
     dHrxn3 = -40.25
     alpha = 1.8
@@ -40,7 +40,7 @@ def crear_MPC():
     LimsupFr = 15.0
 
     LiminfT = 10.0
-    LimsupT = 60.0
+    LimsupT = 34.0
 
     LiminfTc = 10.0
     LimsupTc = 60.0
@@ -78,7 +78,9 @@ def crear_MPC():
     m.v = Param([0,1,2,3], default=0, mutable=True)
 
     # Integración MA
-    m.Lambda = Param([0,1], default=0, mutable=True)
+    m.Lambda = Param([0,1], default=0., mutable=True)
+    m.Gamma = Param([0,1], default=0., mutable=True)
+    m.Epsilon = Param(default=0.0, mutable=True)
     
     # Declaración de las variables dependientes
     m.Ca = Var(m.t, within=PositiveReals)
@@ -133,15 +135,13 @@ def crear_MPC():
     m.ode_T = Constraint(m.t, rule=_dTdt)
     m.ode_Tc = Constraint(m.t, rule=_dTcdt)
 
-    # Restricciones de camino
-    '''
-    m.path_Tlo = Constraint(m.t, rule=lambda m, t: m.T[t] >= LiminfT)
-    m.path_Tup = Constraint(m.t, rule=lambda m, t: m.T[t] <= LimsupT)
-    m.path_Tclo = Constraint(m.t, rule=lambda m, t: m.Tc[t] >= LiminfTc)
-    m.path_Tcup = Constraint(m.t, rule=lambda m, t: m.Tc[t] <= LimsupTc)
-    m.path_Cblo = Constraint(m.t, rule=lambda m, t: m.Cb[t] >= LiminfCb)
-    m.path_Cbup = Constraint(m.t, rule=lambda m, t: m.Cb[t] <= LimsupCb)
-    '''
+    # Restricciones
+    # Constraint Ca <= 0.04 al final del horizonte de prediccion
+    def _g1(m):
+        return m.T[Pred_h] + m.error[2] + m.Gamma[0]*(m.q[Pred_h] - m.uqant) + m.Gamma[1]*(m.Fr[Pred_h] - m.uFrant) + m.Epsilon - LimsupT <= 0.0
+
+    m.c1 = Constraint(rule = _g1) 
+
     #Definir la función de coste
     def _obj(m):
 
@@ -170,7 +170,7 @@ def crear_MPC():
 
     return m
 
-def actualizar_MPC(m_MPC, uq1, uFr1, state, v, error, Lambda, Nm=4):
+def actualizar_MPC(m_MPC, uq1, uFr1, state, v, error, Lambda, Gamma, Epsilon1, Nm=4):
     m_MPC.uqant = uq1
     m_MPC.uFrant = uFr1
 
@@ -182,6 +182,11 @@ def actualizar_MPC(m_MPC, uq1, uFr1, state, v, error, Lambda, Nm=4):
     m_MPC.Lambda[0] = Lambda[0]
     m_MPC.Lambda[1] = Lambda[1]
 
+    m_MPC.Gamma[0] = Gamma[0]
+    m_MPC.Gamma[1] = Gamma[1]
+
+    m_MPC.Epsilon = Epsilon1
+    
     for i in range(0, Nm):
         m_MPC.v[i] = v[i]
         m_MPC.error[i] = error[i]

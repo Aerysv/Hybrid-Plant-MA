@@ -144,7 +144,7 @@ def graficar_sim(tsim, profiles, U):
     axs[2, 1].set_ylabel('Caudal [L/min]')
     axs[2, 1].set_xlabel('Tiempo [min]')
 
-def costo_planta_steady(m_proc):
+def costo_constraint_planta_steady(m_proc, limT):
 
     # Precios
     pA = 0.2  # (euro/mol)
@@ -154,7 +154,9 @@ def costo_planta_steady(m_proc):
     # Llamada al simulador
     sim = Simulator(m_proc, package='casadi')
     tsim, profiles = sim.simulate(numpoints=101, integrator='idas')
-    return value(m_proc.q)*(pB*profiles[-1,1] - pA*5.0) - value(m_proc.Fr)*pFr
+    J_costo = value(m_proc.q)*(pB*profiles[-1,1] - pA*5.0) - value(m_proc.Fr)*pFr
+    g1 = profiles[-1,2] - limT
+    return J_costo, g1
 
 if __name__ == "__main__":
     tSample=0.5

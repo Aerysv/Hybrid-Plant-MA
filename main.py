@@ -77,7 +77,7 @@ Limsupq = 1.2
 LiminfFr = 6.0
 LimsupFr = 15.0
 LiminfT = 6.0
-LimsupT = 60.0
+LimsupT = 34.0
 LiminfCb = 0.0
 LimsupCb = 5.0
 beta = [2.0, 2.0]  # Penalizacion de cambios
@@ -89,8 +89,8 @@ pFr = 3.0  # (euro/mol)
 
 # Parametros MA
 conMA = True
-K = 1  # filtro de los modificadores
-opcion_grad = 2             # 1- Exacto, 2- NLMS, 3- RELS , 4 -DME
+K = 1.0  # filtro de los modificadores
+opcion_grad = 1             # 1- Exacto, 2- NLMS, 3- RELS , 4 -DME
 flagMHE = True
 
 # MHE
@@ -99,9 +99,11 @@ beta_x_ant = 1
 
 # NLMS & RELS
 theta_J_ant = [0.0]*15
+theta_g_ant = [0.0]*15
 
 # NLMS
-mu_J = 1.8
+mu_J = 1.8  # Valores mayores que 0.7, 0.5, 0.4, 0.3, 0.2,0.1, 0.05 dan extremos q = 1.18 y Fr = 15.0
+mu_g1 = 1.8   # Valores de 0.6 no cumple restricciones Fr = 6.0 q =1.2
 
 # RELS
 alpha = 0.86  # alpha = 0.2 - oscila mucho
@@ -121,7 +123,8 @@ aux = [None]*4  # valores auxiliares
 J_y_g = [None]*3
 # Past cost function and constraints
 J_y_g_ant = [None]*(3*(Ne+1))
-J_p_ant = [None]*3
+J_p_ant = [None]*4
+J_g1_ant = [None]*4
 u_ant = [None]*(MV*Ne)  # valores pasados del control aplicado
 x_Ndme = [None]*Nx		    # Estimated state at t- Ndme
 Qdu_ant = [0.0]*Ndme	    # Esfuerzos de control anteriores
@@ -135,7 +138,9 @@ uq = [0.75]*3
 uFr = [8.51]*3
 u_new = [uq1, uFr1]
 v_new = [0.0]*Nx  # valores estimados de las perturbaciones
-Lambda = [0.0, 0.0]                            # Modificadores funcion costo
+Lambda = [0.0, 0.0]                        # Modificadores funcion costo
+Gamma = [0.0, 0.0]                         # Modificadores restriccion primer orden
+Epsilon = 0.0                            # Modificadores restriccion cero orden
 Theta_ant = [0.0]*(MV*Ndme)
 j_DME = 0.0
 j_m_DME = 0.0
@@ -146,8 +151,8 @@ Ca = 0.06
 Cb = 0.32
 T = 25.0
 Tc = 22.0
-T0 = 20.0
-Tc0 = 20.0
+T0 = 24 #20.0
+Tc0 = 24# 20.0
 v_ini = [0.0]*Nx  # Inicializacion vector de perturbaciones
 error = [0.0]*Nx
 Qdu_k = 0.0
@@ -219,7 +224,7 @@ for k_sim in range(0, 241): #121 241 481
     aux = [uq1, uFr1, T0, Tc0]
 
     J_y_g[0] = acc[0]*(pB*med[1] - pA*5) - pFr*acc[1]
-    J_y_g[1] = 0.0
+    J_y_g[1] = med[2] - LimsupT
     J_y_g[2] = 0.0
 
     # Actualizar el vector de acciones de control
@@ -290,34 +295,62 @@ for k_sim in range(0, 241): #121 241 481
 
         if (opcion_grad == 1):
             print("Calculando grad exactos")
-            grad_m = grad_m_DD(med, per, aux, v_new, error, config)
-            grad_p = grad_p_DD(med, aux)
+            grad_m, g1_m = grad_m_DD(med, per, aux, v_new, error, config)
+            grad_p, g1_p = grad_p_DD(med, aux)
 
-            Lambda = filtro_mod(grad_p, grad_m, K, Lambda, k_MA)
+            Lambda = filtro_mod([grad_p[0], grad_p[1]], [grad_m[0], grad_m[1]], K, Lambda, k_MA)
+            Gamma = filtro_mod([grad_p[2], grad_p[3]], [grad_m[2], grad_m[3]],K,Gamma,k_MA)
+
+            if (k_MA == 1):
+                for i in range(0, 2):
+                    Epsilon = g1_p - g1_m
+            else:
+                for i in range(0, 2):
+                    Epsilon = Epsilon*(1-K) + K*(g1_p - g1_m)            
         
         elif ((opcion_grad == 2) or (opcion_grad == 3)) & (k_sim > Ne+1):
             
-            grad_m = grad_m_DD(med, per, aux, v_new, error, config)
+            grad_m, g1_m  = grad_m_DD(med, per, aux, v_new, error, config)
 
             # Valores más actuales están a finales del vector
             # Para NLMS/RELS sólo necesito los 3 últimos valores
             # El mayor indice tiene el valor más actual
-            J_p_ant[0] = J_y_g_ant[3]  # indices son: 0, 3, 6, 9, 12
-            J_p_ant[1] = J_y_g_ant[6]
-            J_p_ant[2] = J_y_g_ant[9]
+            J_p_ant[0] = J_y_g_ant[0]  # indices son: 0, 3, 6, 9, 12
+            J_p_ant[1] = J_y_g_ant[3]
+            J_p_ant[2] = J_y_g_ant[6]
+            J_p_ant[3] = J_y_g_ant[9]
+
+            J_g1_ant[0] = J_y_g_ant[1]  # indices son: 1, 4, 7, 10, 13
+            J_g1_ant[1] = J_y_g_ant[4] 
+            J_g1_ant[2] = J_y_g_ant[7]
+            J_g1_ant[3] = J_y_g_ant[10]
 
             if (opcion_grad == 2):
-                print("Estimando grad proceso por NLMS")
+                print("Estimando grad proceso y restricciones por NLMS")
                 theta = NLMS(u_ant, J_p_ant, J_y_g[0], theta_J_ant, mu_J)
                 theta_J_ant = theta
+
+                theta_g = NLMS(u_ant, J_g1_ant, J_y_g[1], theta_g_ant, mu_g1)
+                theta_g_ant = theta_g
+
             elif (opcion_grad == 3):
                 print("Estimando grad proceso por RELS")
                 theta,  sigma_inv = RELS(u_ant, J_p_ant, J_y_g[0], theta_J_ant, sigma_inv_ant, alpha)
                 theta_J_ant = theta
                 sigma_inv_ant = sigma_inv
 
-            grad_p = [theta[0], theta[1]]
-            Lambda = filtro_mod(grad_p, grad_m,K,Lambda,k_MA)
+            grad_p = [theta[0], theta[1]]            
+            Lambda = filtro_mod(grad_p, [grad_m[0], grad_m[1]],K,Lambda,k_MA)
+
+            grad_g1 = [theta_g[0],theta_g[1]]
+            Gamma = filtro_mod(grad_g1, [grad_m[2], grad_m[3]],K,Gamma,k_MA)
+
+            g1_p = J_y_g[1] - LimsupT
+
+            if (k_MA == 1):
+                Epsilon = g1_p - g1_m
+            else:
+                Epsilon = Epsilon*(1-K) + K*(g1_p - g1_m)   
 
         elif(opcion_grad == 4) & (k_sim > Ne+1):
             print("Calculando modificadores por DME")
@@ -333,13 +366,15 @@ for k_sim in range(0, 241): #121 241 481
             j_modified_DME = value(m_DME.J_modified[tSample])
     else:
         Lambda = [0.0, 0.0]
+        Gamma = [0.0, 0.0]
+        Epsilon = 0.0
         j_DME = J_y_g[0]
         j_m_DME = 0.0
         j_modified_DME = 0.0
 
     # LLamada al controlador
     # ___________________________________________________________________
-    actualizar_MPC(m_MPC, uq1, uFr1, state, v_new, error, Lambda)
+    actualizar_MPC(m_MPC, uq1, uFr1, state, v_new, error, Lambda, Gamma, Epsilon)
     uq, uFr = ejecutar_MPC(m_MPC, tSample)
     uq1 = uq[0]
     uFr1 = uFr[0]

@@ -19,7 +19,7 @@ def NLMS(u_ant, func_ant, func_actual, theta, mu, rho = 1e-4):
 
     # Vectores de medidas: mayor indice es el valor anterior más actual
 	# En el NLMS los vectores dq y dFr el menor indice es lo más actual		
-    dFunc_p = func_actual - func_ant[2]
+    dFunc_p = func_actual - func_ant[3]
 
     dq[0]   = u_ant[6] - u_ant[4]	#u1 - indices 0, 2, 4, 6
     dq[1]   = u_ant[4] - u_ant[2]
@@ -45,7 +45,8 @@ def NLMS(u_ant, func_ant, func_actual, theta, mu, rho = 1e-4):
     phi[12] =  dq[1]*dFr[1]
     phi[13] =  dFr[1]*dFr[1]/2
 
-    dfuncdt = (1/6)*(11*(func_actual)-18*func_ant[2]+9*func_ant[1]-2*func_ant[0])
+    #dfuncdt = (1/6)*(11*(func_actual)-18*func_ant[2]+9*func_ant[1]-2*func_ant[0])
+    dfuncdt = (1/6)*(11*(func_ant[3])-18*func_ant[2]+9*func_ant[1]-2*func_ant[0])
     phi[14] = dfuncdt
 
     eps = dFunc_p - np.dot(phi,theta)  #Diferencia entre funcion medida y calculada (error)

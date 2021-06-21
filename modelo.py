@@ -19,7 +19,7 @@ def crear_MODELO():
     Ea1 = 52.1
     Ea2 = 70.0
     Ea3 = 65.0
-    dHrxn1 = -48.75
+    dHrxn1 = -28.75 #-48.75
     dHrxn2 = -34.50
     dHrxn3 = -40.25
     alpha = 1.8
@@ -30,7 +30,7 @@ def crear_MODELO():
     T_ini = 25.0
     Tc_ini = 22.0
 
-    tEnd = 120  # Horizonte de Predicción para garantizar estado estacionario
+    tEnd = 120.  # Horizonte de Predicción para garantizar estado estacionario
 
     # Declaración del modelo
     m = ConcreteModel(name="ModelReactorVandeVusse")
@@ -127,7 +127,7 @@ def graficar_modelo(tsim, profiles):
     axs[1, 1].set_ylabel('Temperatura [ºC]')
     plt.show()
 
-def costo_model_steady(m_model, config):
+def costo_constraint_model_steady(m_model, config,limT):
 
     # Precios
     pA = config[0]    # (euro/mol)
@@ -137,10 +137,13 @@ def costo_model_steady(m_model, config):
     # Llamada al simulador
     sim = Simulator(m_model, package='casadi')
     tsim, profiles = sim.simulate(numpoints=101, integrator='idas')
+    T = profiles[-1,2]
     Cb = profiles[-1,1]
     q = value(m_model.q)
     Fr = value(m_model.Fr)
-    return q*(pB*(Cb + value(m_model.error[1])) - pA*5.0) - pFr*Fr
+    J_costo = q*(pB*(Cb + value(m_model.error[1])) - pA*5.0) - pFr*Fr
+    g1 = T + value(m_model.error[2])- limT
+    return J_costo, g1
 
 
 if __name__ == "__main__":

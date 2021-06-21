@@ -18,7 +18,7 @@ def crear_MHE():
     Ea1 = 52.1
     Ea2 = 70.0
     Ea3 = 65.0
-    dHrxn1 = -48.75
+    dHrxn1 = -28.75 #-48.75
     dHrxn2 = -34.50
     dHrxn3 = -40.25
     alpha = 1.8
