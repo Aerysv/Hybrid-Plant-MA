@@ -29,8 +29,8 @@ def crear_MPC():
     pFr = 3.0     # €/L
 
     # Perturbaciones
-    T0 = 20.0
-    Tc0 = 20.0
+    # T0 = 20.0
+    # Tc0 = 20.0
 
     # Parámetros del controlador
     Liminfq = 0.3
@@ -72,6 +72,9 @@ def crear_MPC():
     # Integración simulación
     m.uqant = Param(initialize=0.75, mutable=True)
     m.uFrant = Param(initialize=8.51, mutable=True)
+
+    m.T0 = Param(initialize=20, mutable=True)
+    m.Tc0 = Param(initialize=20, mutable=True)
 
     # Integración MHE
     m.error = Param([0,1,2,3], default=0, mutable=True)
@@ -121,13 +124,13 @@ def crear_MPC():
         return V*m.Cb_dot[t] == -m.q[t]*m.Cb[t] + V*(k10*exp(-Ea1/(R*(m.T[t]+273.15)))*m.Ca[t] - k20*exp(-Ea2/(R*(m.T[t]+273.15)))*m.Cb[t]) + m.v[1]
 
     def _dTdt(m, t):
-        return rho*Cp*V*m.T_dot[t] == m.q[t]*rho*Cp*(T0 - m.T[t]) - alpha*m.Fr[t]**0.8*(m.T[t] - m.Tc[t]) + \
+        return rho*Cp*V*m.T_dot[t] == m.q[t]*rho*Cp*(m.T0 - m.T[t]) - alpha*m.Fr[t]**0.8*(m.T[t] - m.Tc[t]) + \
                                     V*(-dHrxn1*k10*exp(-Ea1/(R*(m.T[t]+273.15)))*m.Ca[t] 
                                         - dHrxn2*k20*exp(-Ea2/(R*(m.T[t]+273.15)))*m.Cb[t]
                                         - 2*dHrxn3*k30*exp(-Ea3/(R*(m.T[t]+273.15)))*m.Ca[t]**2) + m.v[2]
 
     def _dTcdt(m, t):
-        return rho*Cp*Vc*m.Tc_dot[t] == m.Fr[t]*rho*Cp*(Tc0 - m.Tc[t]) +alpha*m.Fr[t]**0.8*(m.T[t] - m.Tc[t]) + m.v[3]
+        return rho*Cp*Vc*m.Tc_dot[t] == m.Fr[t]*rho*Cp*(m.Tc0 - m.Tc[t]) +alpha*m.Fr[t]**0.8*(m.T[t] - m.Tc[t]) + m.v[3]
 
     # Declaración de las ODES
     m.ode_Ca = Constraint(m.t, rule=_dCadt)
@@ -170,26 +173,29 @@ def crear_MPC():
 
     return m
 
-def actualizar_MPC(m_MPC, uq1, uFr1, state, v, error, Lambda, Gamma, Epsilon1, Nm=4):
-    m_MPC.uqant = uq1
-    m_MPC.uFrant = uFr1
+def actualizar_MPC(m, uq1, uFr1, per, state, v, error, Lambda, Gamma, Epsilon1, Nm=4):
+    m.uqant = uq1
+    m.uFrant = uFr1
+    
+    m.T0 = per[0]
+    m.Tc0 = per[1]
 
-    m_MPC.Ca[0.0] = state[0]
-    m_MPC.Cb[0.0] = state[1]
-    m_MPC.T[0.0] = state[2]
-    m_MPC.Tc[0.0] = state[3]
+    m.Ca[0.0] = state[0]
+    m.Cb[0.0] = state[1]
+    m.T[0.0] = state[2]
+    m.Tc[0.0] = state[3]
 
-    m_MPC.Lambda[0] = Lambda[0]
-    m_MPC.Lambda[1] = Lambda[1]
+    m.Lambda[0] = Lambda[0]
+    m.Lambda[1] = Lambda[1]
 
-    m_MPC.Gamma[0] = Gamma[0]
-    m_MPC.Gamma[1] = Gamma[1]
+    m.Gamma[0] = Gamma[0]
+    m.Gamma[1] = Gamma[1]
 
-    m_MPC.Epsilon = Epsilon1
+    m.Epsilon = Epsilon1
     
     for i in range(0, Nm):
-        m_MPC.v[i] = v[i]
-        m_MPC.error[i] = error[i]
+        m.v[i] = v[i]
+        m.error[i] = error[i]
 
 def ejecutar_MPC(m_MPC, tSample):
     solver = SolverFactory('ipopt')

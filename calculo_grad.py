@@ -72,7 +72,7 @@ def grad_p_DD(med, aux):
     grad_p = [0.0]*4
 
     delta = 0.01
-    limT = 34.0
+    limT = 32.0
 
     # Llamada al simulador
     m_Proc = crear_SIM(120)

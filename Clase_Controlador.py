@@ -123,14 +123,14 @@ class Controlador():
             _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: Gamma[{i+1}] = {s.Gamma[i]}')
         
         await server.write_attribute_value(server.get_node(f"ns=4;s=Epsilon").nodeid, ua.DataValue(s.Epsilon))
-        _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: Epsilon] = {s.Epsilon}')
+        _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: Epsilon = {s.Epsilon}')
 
         # Para verificar que está calculando el controlador
-        await server.write_attribute_value(server.get_node(f"ns=4;s=T_end_MPC").nodeid, ua.DataValue(s.m_MPC.T[60.0].value+s.m_MPC.error[2].value))
-        _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: T_end_MPC] = {s.m_MPC.T[60.0].value+s.m_MPC.error[2].value}')
+        await server.write_attribute_value(server.get_node(f"ns=4;s=MPC_T_end").nodeid, ua.DataValue(s.m_MPC.T[60.0].value+s.m_MPC.error[2].value))
+        _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: MPC_T_end = {s.m_MPC.T[60.0].value+s.m_MPC.error[2].value}')
 
-        await server.write_attribute_value(server.get_node(f"ns=4;s=T_end_MPC").nodeid, ua.DataValue(value(s.m_MPC.g1)))
-        _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: T_end_MPC] = {value(s.m_MPC.g1)}')
+        await server.write_attribute_value(server.get_node(f"ns=4;s=MPC_g1").nodeid, ua.DataValue(value(s.m_MPC.c1)))
+        _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: MPC_g1 = {value(s.m_MPC.c1)}')
 
     async def recibir_variables(s, server):
         # Tipo de control
@@ -248,22 +248,22 @@ class Controlador():
 
             if (s.opcion_grad == 1):
                 print("Calculando grad exactos")
-                s.grad_m, s.g1_m = grad_m_DD(s.med, s.per, s.aux, s.v_new, s.error, s.config)
-                s.grad_p, s.g1_p = grad_p_DD(s.med, s.aux)
+                s.grad_m, s.g1_m = grad_m_DD(s.state, s.per, s.aux, s.v_new, s.error, s.config)
+                s.grad_p, s.g1_p = grad_p_DD(s.state, s.aux)
 
                 s.Lambda = filtro_mod([s.grad_p[0], s.grad_p[1]], [s.grad_m[0], s.grad_m[1]], s.K, s.Lambda, s.k_MA)
                 s.Gamma = filtro_mod([s.grad_p[2], s.grad_p[3]], [s.grad_m[2], s.grad_m[3]], s.K, s.Gamma, s.k_MA)
 
                 if (s.k_MA == 1):
                     for i in range(0, 2):
-                        Epsilon = s.g1_p - s.g1_m
+                        s.Epsilon = s.g1_p - s.g1_m
                 else:
                     for i in range(0, 2):
-                        Epsilon = Epsilon*(1-s.K) + s.K*(s.g1_p - s.g1_m)            
+                        s.Epsilon = s.Epsilon*(1-s.K) + s.K*(s.g1_p - s.g1_m)            
             
             elif ((s.opcion_grad == 2) or (s.opcion_grad == 3)):
                 
-                s.grad_m, s.g1_m  = grad_m_DD(s.med, s.per, s.aux, s.v_new, s.error, s.config)
+                s.grad_m, s.g1_m  = grad_m_DD(s.state, s.per, s.aux, s.v_new, s.error, s.config)
 
                 # Valores más actuales están a finales del vector
                 # Para NLMS/RELS sólo necesito los 3 últimos valores
@@ -327,7 +327,7 @@ class Controlador():
 
         # LLamada al controlador
         # ___________________________________________________________________
-        MPC.actualizar_MPC(s.m_MPC, s.uq1, s.uFr1, s.state, s.v_new, s.error, s.Lambda, s.Gamma, s.Epsilon)
+        MPC.actualizar_MPC(s.m_MPC, s.uq1, s.uFr1, s.per, s.state, s.v_new, s.error, s.Lambda, s.Gamma, s.Epsilon)
         s.uq, s.uFr = MPC.ejecutar_MPC(s.m_MPC, s.tSample)
         s.uq1 = s.uq[0]
         s.uFr1 = s.uFr[0]

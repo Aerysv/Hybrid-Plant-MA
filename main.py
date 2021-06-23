@@ -157,7 +157,6 @@ v_ini = [0.0]*Nx  # Inicializacion vector de perturbaciones
 error = [0.0]*Nx
 Qdu_k = 0.0
 
-# ---------BLOCO INIT --------------------
 # constraints MVs
 lim_manip_low = [Liminfq, LiminfFr]  # Limites inferiores
 lim_manip_up = [Limsupq, LimsupFr]   # Limites superiores
@@ -295,8 +294,8 @@ for k_sim in range(0, 241): #121 241 481
 
         if (opcion_grad == 1):
             print("Calculando grad exactos")
-            grad_m, g1_m = grad_m_DD(med, per, aux, v_new, error, config)
-            grad_p, g1_p = grad_p_DD(med, aux)
+            grad_m, g1_m = grad_m_DD(state, per, aux, v_new, error, config)
+            grad_p, g1_p = grad_p_DD(state, aux)
 
             Lambda = filtro_mod([grad_p[0], grad_p[1]], [grad_m[0], grad_m[1]], K, Lambda, k_MA)
             Gamma = filtro_mod([grad_p[2], grad_p[3]], [grad_m[2], grad_m[3]],K,Gamma,k_MA)
@@ -310,7 +309,7 @@ for k_sim in range(0, 241): #121 241 481
         
         elif ((opcion_grad == 2) or (opcion_grad == 3)) & (k_sim > Ne+1):
             
-            grad_m, g1_m  = grad_m_DD(med, per, aux, v_new, error, config)
+            grad_m, g1_m  = grad_m_DD(state, per, aux, v_new, error, config)
 
             # Valores más actuales están a finales del vector
             # Para NLMS/RELS sólo necesito los 3 últimos valores
@@ -374,7 +373,7 @@ for k_sim in range(0, 241): #121 241 481
 
     # LLamada al controlador
     # ___________________________________________________________________
-    actualizar_MPC(m_MPC, uq1, uFr1, state, v_new, error, Lambda, Gamma, Epsilon)
+    actualizar_MPC(m_MPC, uq1, uFr1, per, state, v_new, error, Lambda, Gamma, Epsilon)
     uq, uFr = ejecutar_MPC(m_MPC, tSample)
     uq1 = uq[0]
     uFr1 = uFr[0]
@@ -408,13 +407,6 @@ for k_sim in range(0, 241): #121 241 481
     state_real[3] = profiles[-1, 3]
 
     # ___________________________________________________________simulador
-    # Borrar
-    for i in range(4):
-        print(f'v_new[{i:d}] = {v_new[i]:.2f}')
-    for i in range(4):
-        print(f'state_real[{i:d}] = {state_real[i]:.2f}')
-        print(f'state_MHE[{i:d}] = {state[i]:.2f}')
-    # __________Borrar
 
     # Reporte y gráficas
     print(f'TIME = {k_sim*tSample}')
