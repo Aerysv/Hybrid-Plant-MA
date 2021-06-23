@@ -39,6 +39,24 @@
    <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_commands</Reference>
   </References>
 </UAVariable>
+<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=MPC_T_end" BrowseName="4:MPC_T_end" UserAccessLevel="3" AccessLevel="3">
+  <DisplayName>MPC_T_end</DisplayName>
+  <Value>
+    <uax:Double>0</uax:Double>
+  </Value>
+   <References>
+  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
+  </References>
+</UAVariable>
+<UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=MPC_g1" BrowseName="4:MPC_g1" UserAccessLevel="3" AccessLevel="3">
+  <DisplayName>MPC_g1</DisplayName>
+  <Value>
+    <uax:Double>0</uax:Double>
+  </Value>
+   <References>
+  <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
+  </References>
+</UAVariable>
 <UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=Ca" BrowseName="4:Ca" UserAccessLevel="3" AccessLevel="3">
   <DisplayName>Ca</DisplayName>
   <Value>
@@ -186,7 +204,7 @@
 <UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=LimsupT" BrowseName="4:LimsupT" UserAccessLevel="3" AccessLevel="3">
   <DisplayName>LimsupT</DisplayName>
   <Value>
-    <uax:Double>60</uax:Double>
+    <uax:Double>32</uax:Double>
   </Value>
      <References>
   <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>

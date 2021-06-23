@@ -11,7 +11,7 @@ def crear_SIM(tEnd):
     Vc = 1.0    # L
     rho = 1.0   # kg/L
     Cp = 4.184  # kJ/kg/K
-  
+    
     k10 = 9.94755854e+10
     k20 = 9.98553963e+11
     k30 = 9.99263023e+12
@@ -165,29 +165,25 @@ if __name__ == "__main__":
     Y = np.array([[0, 0, 0, 0]])
     U = np.array([[0, 0]])
 
+    m_sim.q = 1.2
+    m_sim.Fr = 12.7
+
     # Llamada al simulador
     sim = Simulator(m_sim, package='casadi')
-    tsim, profiles = sim.simulate(numpoints=101, integrator='idas')
 
-    TIME = np.append(TIME, tsim+TIME[-1])
-    Y = np.append(Y, profiles, axis=0)
-    u1 = np.ones(len(tsim))*value(m_sim.q)
-    u2 = np.ones(len(tsim))*value(m_sim.Fr)
-    U = np.append(U, np.stack((u1, u2), axis=1), axis=0)
+    for k_sim in range(0, 100):
+        tsim, profiles = sim.simulate(numpoints=101, integrator='idas')
 
-    m_sim.Fr = 0.1
-    m_sim.Ca[0.0] = profiles[-1,0]
-    m_sim.Cb[0.0] = profiles[-1,1]
-    m_sim.T[0.0] = profiles[-1,2]
-    m_sim.Tc[0.0] = profiles[-1,3]
-    sim = Simulator(m_sim, package='casadi')
-    tsim, profiles = sim.simulate(numpoints=101, integrator='idas')
+        TIME = np.append(TIME, tsim+TIME[-1])
+        Y = np.append(Y, profiles, axis=0)
+        u1 = np.ones(len(tsim))*value(m_sim.q)
+        u2 = np.ones(len(tsim))*value(m_sim.Fr)
+        U = np.append(U, np.stack((u1, u2), axis=1), axis=0)
 
-    TIME = np.append(TIME, tsim+TIME[-1])
-    Y = np.append(Y, profiles, axis=0)
-    u1 = np.ones(len(tsim))*value(m_sim.q)
-    u2 = np.ones(len(tsim))*value(m_sim.Fr)
-    U = np.append(U, np.stack((u1, u2), axis=1), axis=0)
+        m_sim.Ca[0.0] = profiles[-1,0]
+        m_sim.Cb[0.0] = profiles[-1,1]
+        m_sim.T[0.0] = profiles[-1,2]
+        m_sim.Tc[0.0] = profiles[-1,3]
 
     TIME = np.delete(TIME, 0)
     Y = np.delete(Y, 0, axis=0)

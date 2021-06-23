@@ -40,7 +40,7 @@ def crear_MPC():
     LimsupFr = 15.0
 
     LiminfT = 10.0
-    LimsupT = 34.0
+    LimsupT = 32.0
 
     LiminfTc = 10.0
     LimsupTc = 60.0
@@ -255,6 +255,7 @@ if __name__ == '__main__':
     m_MPC = crear_MPC()
     solver = SolverFactory('ipopt')
     results = solver.solve(m_MPC)        # Llamada al solver
+    print(value(m_MPC.c1))
     print(f'q = {value(m_MPC.q[tSample])}')
     print(f'Fr = {value(m_MPC.Fr[tSample])}')
     m_MPC.Ca[0.0] = 0.07

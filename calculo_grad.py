@@ -8,7 +8,7 @@ from simulacion import *
 
 def grad_m_DD(med, per, aux, v, error, config):
 
-    limT = 34.0
+    limT = 32.0
 
     J_model = [0.0]*3
     g1_model = [0.0]*3

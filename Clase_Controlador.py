@@ -44,7 +44,7 @@ class Controlador():
         s.Ndme = 3  # Number of (past and current) samples used in DME
         s.PV = 2   # Number of process variables with Upper/lower constraints
 
-        s.LimsupT = 34.0
+        s.LimsupT = 32.0
 
         s.Lu_i = [None]*s.MV
         s.Lu_s = [None]*s.MV
@@ -125,6 +125,13 @@ class Controlador():
         await server.write_attribute_value(server.get_node(f"ns=4;s=Epsilon").nodeid, ua.DataValue(s.Epsilon))
         _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: Epsilon] = {s.Epsilon}')
 
+        # Para verificar que está calculando el controlador
+        await server.write_attribute_value(server.get_node(f"ns=4;s=T_end_MPC").nodeid, ua.DataValue(s.m_MPC.T[60.0].value+s.m_MPC.error[2].value))
+        _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: T_end_MPC] = {s.m_MPC.T[60.0].value+s.m_MPC.error[2].value}')
+
+        await server.write_attribute_value(server.get_node(f"ns=4;s=T_end_MPC").nodeid, ua.DataValue(value(s.m_MPC.g1)))
+        _logger.info(f' [{datetime.now().strftime("%H:%M:%S.%f")[:-3]}]\t Node written: T_end_MPC] = {value(s.m_MPC.g1)}')
+
     async def recibir_variables(s, server):
         # Tipo de control
         s.conMA = await server.get_node("ns=4;s=conMA").read_value()
@@ -167,7 +174,7 @@ class Controlador():
         s.aux[3] = s.per[1] # Tc0
         # J_costo_real = q*(pB*Cb - pA*Ca0) - pFr*Fr	
         s.J_y_g[0] = s.acc[0]*(s.config[1]*s.med[1] - s.config[0]*5.0) - s.config[2]*s.acc[1]
-        s.J_y_g[1] = 0  # -- -T + LiminfT
+        s.J_y_g[1] = s.med[2] - s.LimsupT
         s.J_y_g[2] = 0  # --T - LimsupT
 
     def actualizar_arrays(s):
