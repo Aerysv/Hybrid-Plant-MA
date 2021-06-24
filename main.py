@@ -383,7 +383,8 @@ for k_sim in range(0, 241): #121 241 481
     # Actualizando vectores para DME
     # ___________________________________________________________________
     if(opcion_grad == 4):
-        Qdu_k = beta[0]*((uq[0]-u_ant[MV*Ndme-2])**2  + (uq[1]-uq[0])**2 + (uq[2]-uq[1])**2 ) + beta[1]*((uFr[1]-u_ant[MV*Ndme-1])**2 +  (uFr[1]-uFr[0])**2 + (uFr[2]-uFr[1])**2 )
+        Qdu_k = beta[0]*((uq[0]-u_ant[MV*Ndme-2])**2  + (uq[1]-uq[0])**2 + (uq[2]-uq[1])**2 ) \
+             + beta[1]*((uFr[1]-u_ant[MV*Ndme-1])**2 +  (uFr[1]-uFr[0])**2 + (uFr[2]-uFr[1])**2 )
         du_k[0] = (uq[0] -  u_ant[MV*Ndme-2])
         du_k[1] = (uFr[0] - u_ant[MV*Ndme-1])
     # __________________________________________________________DME
