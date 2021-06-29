@@ -76,6 +76,9 @@ def crear_MPC():
     m.T0 = Param(initialize=20, mutable=True)
     m.Tc0 = Param(initialize=20, mutable=True)
 
+    # Límites
+    m.LimsupT = Param(initialize=LimsupT, mutable=True)
+
     # Integración MHE
     m.error = Param([0,1,2,3], default=0, mutable=True)
     m.v = Param([0,1,2,3], default=0, mutable=True)

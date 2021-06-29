@@ -6,9 +6,7 @@ from pyomo.dae import *
 from modelo import *
 from simulacion import *
 
-def grad_m_DD(med, per, aux, v, error, config):
-
-    limT = 32.0
+def grad_m_DD(med, per, aux, v, error, config, limT):
 
     J_model = [0.0]*3
     g1_model = [0.0]*3
@@ -65,14 +63,13 @@ def grad_m_DD(med, per, aux, v, error, config):
     return grad_m, g1_model[0]
 
 
-def grad_p_DD(med, per, aux):
+def grad_p_DD(med, per, aux, limT):
 
     J_planta = [0.0]*3
     g1_planta = [0.0]*3
     grad_p = [0.0]*4
 
     delta = 0.01
-    limT = 32.0
 
     # Llamada al simulador
     m_Proc = crear_SIM(120)

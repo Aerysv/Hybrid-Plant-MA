@@ -175,6 +175,7 @@ med = [Ca, Cb, T, Tc]
 config = [pA, pB, pFr, beta[0], beta[1]]
 
 m_MPC = crear_MPC()
+m_MPC.LimsupT = LimsupT
 m_SIM = crear_SIM(tSample)
 if flagMHE:
     m_MHE = MHE.crear_MHE()
@@ -294,8 +295,8 @@ for k_sim in range(0, 241): #121 241 481
 
         if (opcion_grad == 1):
             print("Calculando grad exactos")
-            grad_m, g1_m = grad_m_DD(state, per, aux, v_new, error, config)
-            grad_p, g1_p = grad_p_DD(state, per, aux)
+            grad_m, g1_m = grad_m_DD(state, per, aux, v_new, error, config, LimsupT)
+            grad_p, g1_p = grad_p_DD(state, per, aux, LimsupT)
 
             Lambda = filtro_mod([grad_p[0], grad_p[1]], [grad_m[0], grad_m[1]], K, Lambda, k_MA)
             Gamma = filtro_mod([grad_p[2], grad_p[3]], [grad_m[2], grad_m[3]],K,Gamma,k_MA)
@@ -309,7 +310,7 @@ for k_sim in range(0, 241): #121 241 481
         
         elif ((opcion_grad == 2) or (opcion_grad == 3)) & (k_sim > Ne+1):
             
-            grad_m, g1_m  = grad_m_DD(state, per, aux, v_new, error, config)
+            grad_m, g1_m  = grad_m_DD(state, per, aux, v_new, error, config, LimsupT)
 
             # Valores más actuales están a finales del vector
             # Para NLMS/RELS sólo necesito los 3 últimos valores

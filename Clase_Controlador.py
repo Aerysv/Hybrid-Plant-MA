@@ -27,8 +27,10 @@ class Controlador():
         s.mu_g1 = 1.8
         s.theta_J_ant = [0.0]*15
         s.theta_g_ant = [0.0]*15
+        s.LimsupT = 32.0
         # Iniaciación es
         s.m_MPC = MPC.crear_MPC()
+        s.m_MPC.LimsupT = s.LimsupT
         if s.flagMHE:
             s.m_MHE = MHE.crear_MHE()
         if s.opcion_grad == 4:
@@ -43,8 +45,6 @@ class Controlador():
         s.Ne = 4   # Number of (past and current) samples used in MHE
         s.Ndme = 3  # Number of (past and current) samples used in DME
         s.PV = 2   # Number of process variables with Upper/lower constraints
-
-        s.LimsupT = 32.0
 
         s.Lu_i = [None]*s.MV
         s.Lu_s = [None]*s.MV
@@ -248,8 +248,8 @@ class Controlador():
 
             if (s.opcion_grad == 1):
                 print("Calculando grad exactos")
-                s.grad_m, s.g1_m = grad_m_DD(s.state, s.per, s.aux, s.v_new, s.error, s.config)
-                s.grad_p, s.g1_p = grad_p_DD(s.state, s.per, s.aux)
+                s.grad_m, s.g1_m = grad_m_DD(s.state, s.per, s.aux, s.v_new, s.error, s.config, s.LimsupT)
+                s.grad_p, s.g1_p = grad_p_DD(s.state, s.per, s.aux, s.LimsupT)
 
                 s.Lambda = filtro_mod([s.grad_p[0], s.grad_p[1]], [s.grad_m[0], s.grad_m[1]], s.K, s.Lambda, s.k_MA)
                 s.Gamma = filtro_mod([s.grad_p[2], s.grad_p[3]], [s.grad_m[2], s.grad_m[3]], s.K, s.Gamma, s.k_MA)
@@ -263,7 +263,7 @@ class Controlador():
             
             elif ((s.opcion_grad == 2) or (s.opcion_grad == 3)):
                 
-                s.grad_m, s.g1_m  = grad_m_DD(s.state, s.per, s.aux, s.v_new, s.error, s.config)
+                s.grad_m, s.g1_m  = grad_m_DD(s.state, s.per, s.aux, s.v_new, s.error, s.config, s.LimsupT)
 
                 # Valores más actuales están a finales del vector
                 # Para NLMS/RELS sólo necesito los 3 últimos valores
