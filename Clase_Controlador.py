@@ -249,7 +249,7 @@ class Controlador():
             if (s.opcion_grad == 1):
                 print("Calculando grad exactos")
                 s.grad_m, s.g1_m = grad_m_DD(s.state, s.per, s.aux, s.v_new, s.error, s.config)
-                s.grad_p, s.g1_p = grad_p_DD(s.state, s.aux)
+                s.grad_p, s.g1_p = grad_p_DD(s.state, s.per, s.aux)
 
                 s.Lambda = filtro_mod([s.grad_p[0], s.grad_p[1]], [s.grad_m[0], s.grad_m[1]], s.K, s.Lambda, s.k_MA)
                 s.Gamma = filtro_mod([s.grad_p[2], s.grad_p[3]], [s.grad_m[2], s.grad_m[3]], s.K, s.Gamma, s.k_MA)

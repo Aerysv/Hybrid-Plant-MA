@@ -173,7 +173,7 @@ def crear_MPC():
 
     return m
 
-def actualizar_MPC(m, uq1, uFr1, per, state, v, error, Lambda, Gamma, Epsilon1, Nm=4):
+def actualizar_MPC(m, uq1, uFr1, per, state, v, error, Lambda, Gamma, Epsilon, Nm=4):
     m.uqant = uq1
     m.uFrant = uFr1
     
@@ -191,7 +191,7 @@ def actualizar_MPC(m, uq1, uFr1, per, state, v, error, Lambda, Gamma, Epsilon1, 
     m.Gamma[0] = Gamma[0]
     m.Gamma[1] = Gamma[1]
 
-    m.Epsilon = Epsilon1
+    m.Epsilon = Epsilon
     
     for i in range(0, Nm):
         m.v[i] = v[i]

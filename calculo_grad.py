@@ -65,7 +65,7 @@ def grad_m_DD(med, per, aux, v, error, config):
     return grad_m, g1_model[0]
 
 
-def grad_p_DD(med, aux):
+def grad_p_DD(med, per, aux):
 
     J_planta = [0.0]*3
     g1_planta = [0.0]*3
@@ -80,6 +80,9 @@ def grad_p_DD(med, aux):
     m_Proc.Cb[0.0] = med[1]
     m_Proc.T[0.0] = med[2]
     m_Proc.Tc[0.0] = med[3]
+
+    m_Proc.T0 = per[0]
+    m_Proc.Tc0 = per[1]
 
     m_Proc.q = aux[0]
     m_Proc.Fr = aux[1]

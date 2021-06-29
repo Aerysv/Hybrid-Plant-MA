@@ -29,16 +29,15 @@ def crear_SIM(tEnd):
     T_ini = 25.0
     Tc_ini = 22.0
 
-    # Perturbaciones
-    T0 = 20.0
-    Tc0 = 20.0
-
     #tEnd = 0.5  # Horizonte de Predicción
 
     # Declaración del modelo
     m = ConcreteModel(name="ReactorVandeVusse")
     # Declaración del tiempo
     m.t = ContinuousSet(bounds=(0.0, tEnd))
+
+    m.T0 = Param(default=20, mutable=True)
+    m.Tc0 = Param(default=20, mutable=True)
 
     # Integración simulación/Planta
     # Condiciones iniciales
@@ -81,13 +80,13 @@ def crear_SIM(tEnd):
                                                     - k20*exp(-Ea2/(R*(m.T[t]+273.15)))*m.Cb[t])
 
     def _dTdt(m, t):
-        return rho*Cp*V*m.T_dot[t] == m.q*rho*Cp*(T0 - m.T[t]) - alpha*m.Fr**0.8*(m.T[t] - m.Tc[t]) + \
+        return rho*Cp*V*m.T_dot[t] == m.q*rho*Cp*(m.T0 - m.T[t]) - alpha*m.Fr**0.8*(m.T[t] - m.Tc[t]) + \
                                     V*(-dHrxn1*k10*exp(-Ea1/(R*(m.T[t]+273.15)))*m.Ca[t] 
                                         - dHrxn2*k20*exp(-Ea2/(R*(m.T[t]+273.15)))*m.Cb[t]
                                         - 2*dHrxn3*k30*exp(-Ea3/(R*(m.T[t]+273.15)))*m.Ca[t]**2)
 
     def _dTcdt(m, t):
-        return rho*Cp*Vc*m.Tc_dot[t] == m.Fr*rho*Cp*(Tc0 - m.Tc[t]) + alpha*m.Fr**0.8*(m.T[t] - m.Tc[t])
+        return rho*Cp*Vc*m.Tc_dot[t] == m.Fr*rho*Cp*(m.Tc0 - m.Tc[t]) + alpha*m.Fr**0.8*(m.T[t] - m.Tc[t])
 
     # Ecuaciones diferenciales
     m.ode_Ca = Constraint(m.t, rule=_dCadt)

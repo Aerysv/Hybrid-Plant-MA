@@ -77,7 +77,7 @@ Limsupq = 1.2
 LiminfFr = 6.0
 LimsupFr = 15.0
 LiminfT = 6.0
-LimsupT = 34.0
+LimsupT = 32.0
 LiminfCb = 0.0
 LimsupCb = 5.0
 beta = [2.0, 2.0]  # Penalizacion de cambios
@@ -88,7 +88,7 @@ pB = 18.0  # (euro/mol)
 pFr = 3.0  # (euro/mol)
 
 # Parametros MA
-conMA = True
+conMA = False
 K = 1.0  # filtro de los modificadores
 opcion_grad = 1             # 1- Exacto, 2- NLMS, 3- RELS , 4 -DME
 flagMHE = True
@@ -151,8 +151,8 @@ Ca = 0.06
 Cb = 0.32
 T = 25.0
 Tc = 22.0
-T0 = 24 #20.0
-Tc0 = 24# 20.0
+T0 = 24.0 #20.0
+Tc0 = 24.0 # 20.0
 v_ini = [0.0]*Nx  # Inicializacion vector de perturbaciones
 error = [0.0]*Nx
 Qdu_k = 0.0
@@ -295,7 +295,7 @@ for k_sim in range(0, 241): #121 241 481
         if (opcion_grad == 1):
             print("Calculando grad exactos")
             grad_m, g1_m = grad_m_DD(state, per, aux, v_new, error, config)
-            grad_p, g1_p = grad_p_DD(state, aux)
+            grad_p, g1_p = grad_p_DD(state, per, aux)
 
             Lambda = filtro_mod([grad_p[0], grad_p[1]], [grad_m[0], grad_m[1]], K, Lambda, k_MA)
             Gamma = filtro_mod([grad_p[2], grad_p[3]], [grad_m[2], grad_m[3]],K,Gamma,k_MA)
@@ -395,6 +395,9 @@ for k_sim in range(0, 241): #121 241 481
     m_SIM.Cb[0.0] = profiles[-1, 1]
     m_SIM.T[0.0]  = profiles[-1, 2]
     m_SIM.Tc[0.0] = profiles[-1, 3]
+
+    m_SIM.T0 = per[0]
+    m_SIM.Tc0 = per[1]
 
     m_SIM.q = uq1
     m_SIM.Fr = uFr1
