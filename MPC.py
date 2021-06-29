@@ -144,7 +144,7 @@ def crear_MPC():
     # Restricciones
     # Constraint Ca <= 0.04 al final del horizonte de prediccion
     def _g1(m):
-        return m.T[Pred_h] + m.error[2] + m.Gamma[0]*(m.q[Pred_h] - m.uqant) + m.Gamma[1]*(m.Fr[Pred_h] - m.uFrant) + m.Epsilon - LimsupT <= 0.0
+        return m.T[Pred_h] + m.error[2] + m.Gamma[0]*(m.q[Pred_h] - m.uqant) + m.Gamma[1]*(m.Fr[Pred_h] - m.uFrant) + m.Epsilon - m.LimsupT <= 0.0
 
     m.c1 = Constraint(rule = _g1) 
 

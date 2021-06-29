@@ -45,7 +45,6 @@ def NLMS(u_ant, func_ant, func_actual, theta, mu, rho = 1e-4):
     phi[12] =  dq[1]*dFr[1]
     phi[13] =  dFr[1]*dFr[1]/2
 
-    #dfuncdt = (1/6)*(11*(func_actual)-18*func_ant[2]+9*func_ant[1]-2*func_ant[0])
     dfuncdt = (1/6)*(11*(func_ant[3])-18*func_ant[2]+9*func_ant[1]-2*func_ant[0])
     phi[14] = dfuncdt
 

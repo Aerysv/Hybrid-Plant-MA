@@ -88,28 +88,38 @@ pB = 18.0  # (euro/mol)
 pFr = 3.0  # (euro/mol)
 
 # Parametros MA
-conMA = False
-K = 1.0  # filtro de los modificadores
-opcion_grad = 1             # 1- Exacto, 2- NLMS, 3- RELS , 4 -DME
-flagMHE = True
+conMA = True
+K = 0.9  # filtro de los modificadores
+opcion_grad = 2             # 1- Exacto, 2- NLMS, 3- RELS , 4 -DME
 
 # MHE
+flagMHE = True
 beta_xv = 1
 beta_x_ant = 1
 
 # NLMS & RELS
-theta_J_ant = [0.0]*15
-theta_g_ant = [0.0]*15
+if (opcion_grad==2):
+    theta_J_ant = [0.0]*15
+    theta_g_ant = [0.0]*15
+elif (opcion_grad==3):
+    theta_J_ant = [0.0]*16
+    theta_g_ant = [0.0]*16
 
 # NLMS
-mu_J = 1.8  # Valores mayores que 0.7, 0.5, 0.4, 0.3, 0.2,0.1, 0.05 dan extremos q = 1.18 y Fr = 15.0
-mu_g1 = 1.8   # Valores de 0.6 no cumple restricciones Fr = 6.0 q =1.2
+mu_J = 0.05
+mu_g1 = 0.05 
 
 # RELS
-alpha = 0.86  # alpha = 0.2 - oscila mucho
-I = np.eye(15,15)
-sigma_inv_cero = 1/alpha*I
-sigma_inv_ant = sigma_inv_cero
+I = np.eye(16,16)
+alpha_J = 0.99  # alpha = 0.2 - oscila mucho
+sigma_J_inv_cero = 1/alpha_J*I
+sigma_J_inv_ant = sigma_J_inv_cero
+error_J_ant = 0.0
+
+alpha_g = 0.99  # alpha = 0.2 - oscila mucho
+sigma_g_inv_cero = 1/alpha_g*I
+sigma_g_inv_ant = sigma_g_inv_cero
+error_g_ant = 0.0
 
 # Vectores de medidas actuales y pasadas, parametros
 acc = [None]*MV  # Valores actuales de las acciones de control
@@ -151,8 +161,8 @@ Ca = 0.06
 Cb = 0.32
 T = 25.0
 Tc = 22.0
-T0 = 24.0 #20.0
-Tc0 = 24.0 # 20.0
+T0 = 21.0
+Tc0 = 21.0
 v_ini = [0.0]*Nx  # Inicializacion vector de perturbaciones
 error = [0.0]*Nx
 Qdu_k = 0.0
@@ -299,14 +309,12 @@ for k_sim in range(0, 241): #121 241 481
             grad_p, g1_p = grad_p_DD(state, per, aux, LimsupT)
 
             Lambda = filtro_mod([grad_p[0], grad_p[1]], [grad_m[0], grad_m[1]], K, Lambda, k_MA)
-            Gamma = filtro_mod([grad_p[2], grad_p[3]], [grad_m[2], grad_m[3]],K,Gamma,k_MA)
+            Gamma = filtro_mod([grad_p[2], grad_p[3]], [grad_m[2], grad_m[3]], K, Gamma, k_MA)
 
             if (k_MA == 1):
-                for i in range(0, 2):
-                    Epsilon = g1_p - g1_m
+                Epsilon = g1_p - g1_m
             else:
-                for i in range(0, 2):
-                    Epsilon = Epsilon*(1-K) + K*(g1_p - g1_m)            
+                Epsilon = Epsilon*(1-K) + K*(g1_p - g1_m)            
         
         elif ((opcion_grad == 2) or (opcion_grad == 3)) & (k_sim > Ne+1):
             
@@ -335,9 +343,15 @@ for k_sim in range(0, 241): #121 241 481
 
             elif (opcion_grad == 3):
                 print("Estimando grad proceso por RELS")
-                theta,  sigma_inv = RELS(u_ant, J_p_ant, J_y_g[0], theta_J_ant, sigma_inv_ant, alpha)
+                theta,  sigma_J_inv, error_J = RELS(u_ant, J_p_ant, J_y_g[0], theta_J_ant, sigma_J_inv_ant, alpha_J, error_J_ant)
                 theta_J_ant = theta
-                sigma_inv_ant = sigma_inv
+                sigma_J_inv_ant = sigma_J_inv
+                error_J_ant = error_J
+
+                theta_g,  sigma_g_inv, error_g = RELS(u_ant, J_g1_ant, J_y_g[1], theta_g_ant, sigma_g_inv_ant, alpha_g, error_g_ant)
+                theta_g_ant = theta_g
+                sigma_g_inv_ant = sigma_g_inv
+                error_g_ant = error_g
 
             grad_p = [theta[0], theta[1]]            
             Lambda = filtro_mod(grad_p, [grad_m[0], grad_m[1]],K,Lambda,k_MA)
@@ -345,14 +359,14 @@ for k_sim in range(0, 241): #121 241 481
             grad_g1 = [theta_g[0],theta_g[1]]
             Gamma = filtro_mod(grad_g1, [grad_m[2], grad_m[3]],K,Gamma,k_MA)
 
-            g1_p = J_y_g[1] - LimsupT
+            g1_p = J_y_g[1]
 
             if (k_MA == 1):
                 Epsilon = g1_p - g1_m
             else:
                 Epsilon = Epsilon*(1-K) + K*(g1_p - g1_m)   
 
-        elif(opcion_grad == 4) & (k_sim > Ne+1):
+        elif(opcion_grad == 4) & (k_sim > Ne+1): # NO ESTÁ OPERACIONAL
             print("Calculando modificadores por DME")
             DME.actualizar_DME(m_DME, acc_ant, per_ant, med_ant, Qdu_ant, du_ant, Theta_ant, v_new, error)            
             Lambda_new, Theta = DME.ejecutar_DME(m_DME, du_k, beta,tSample)

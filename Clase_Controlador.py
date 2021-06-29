@@ -20,11 +20,11 @@ class Controlador():
         s.flagMHE = True
         s.opcion_grad = 2             # 1- Exacto, 2- NLMS, 3- DME
         s.tSample = 0.5
-        s.K = 1.0
+        s.K = 0.9
         s.k_MA = 0
         s.Lambda = [0.0, 0.0]
-        s.mu_J = 1.8
-        s.mu_g1 = 1.8
+        s.mu_J = 0.05
+        s.mu_g1 = 0.05
         s.theta_J_ant = [0.0]*15
         s.theta_g_ant = [0.0]*15
         s.LimsupT = 32.0
@@ -255,11 +255,9 @@ class Controlador():
                 s.Gamma = filtro_mod([s.grad_p[2], s.grad_p[3]], [s.grad_m[2], s.grad_m[3]], s.K, s.Gamma, s.k_MA)
 
                 if (s.k_MA == 1):
-                    for i in range(0, 2):
-                        s.Epsilon = s.g1_p - s.g1_m
+                    s.Epsilon = s.g1_p - s.g1_m
                 else:
-                    for i in range(0, 2):
-                        s.Epsilon = s.Epsilon*(1-s.K) + s.K*(s.g1_p - s.g1_m)            
+                    s.Epsilon = s.Epsilon*(1-s.K) + s.K*(s.g1_p - s.g1_m)            
             
             elif ((s.opcion_grad == 2) or (s.opcion_grad == 3)):
                 
@@ -298,7 +296,7 @@ class Controlador():
                 s.grad_g1 = [theta_g[0],theta_g[1]]
                 s.Gamma = filtro_mod(s.grad_g1, [s.grad_m[2], s.grad_m[3]], s.K, s.Gamma, s.k_MA)
 
-                s.g1_p = s.J_y_g[1] - s.LimsupT
+                s.g1_p = s.J_y_g[1]
 
                 if (s.k_MA == 1):
                     s.Epsilon = s.g1_p - s.g1_m

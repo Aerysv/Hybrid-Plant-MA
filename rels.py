@@ -10,17 +10,16 @@
 import numpy as np
 from numpy import linalg as LA
 
-def RELS(u_ant, func_ant, func_actual, theta, sigma_inv_ant, alpha):
+def RELS(u_ant, func_ant, func_actual, theta, sigma_inv_ant, alpha, error_ant):
 
     # Inicializando vectores
     dq  = np.array([0.0, 0.0])
     dFr = np.array([0.0, 0.0])
-    phi = np.array([None]*15)
-    #gamma = np.array([None]*15)
+    phi = np.array([None]*16)
 
     # Vectores de medidas: mayor indice es el valor anterior más actual
 	# En el NLMS los vectores dq y dFr el menor indice es lo más actual		
-    dFunc_p = func_actual - func_ant[2]
+    dFunc_p = func_actual - func_ant[3]
 
     dq[0]   = u_ant[6] - u_ant[4]	#u1 - indices 0, 2, 4, 6
     dq[1]   = u_ant[4] - u_ant[2]
@@ -46,16 +45,16 @@ def RELS(u_ant, func_ant, func_actual, theta, sigma_inv_ant, alpha):
     phi[12] =  dq[1]*dFr[1]
     phi[13] =  dFr[1]*dFr[1]/2
 
-    dfuncdt = (1/6)*(11*(func_actual)-18*func_ant[2]+9*func_ant[1]-2*func_ant[0])
-    phi[14] = dfuncdt
+    dfuncdt = (1/6)*(11*(func_ant[3])-18*func_ant[2]+9*func_ant[1]-2*func_ant[0])
+    phi[14] = dfuncdt   
+    phi[15] = error_ant
 
-    eps = dFunc_p - np.dot(phi,theta)  #Diferencia entre funcion medida y calculada (error)
+    eps = dFunc_p - np.dot(phi,theta)  #Diferencia entre funcion medida y calculada (error)    
 
     # RELS - Recursive Extended Least Squares
     # Libro Isermmann - Identification of Dynamic System (pg 295)
     gamma = (sigma_inv_ant@phi)/(alpha + np.transpose(phi)@sigma_inv_ant@phi)
     theta_new = theta + gamma*(eps)
-    teste = np.outer(gamma,phi)
     sigma_inv_actual = (1/alpha)*(sigma_inv_ant - np.outer(gamma,phi)@sigma_inv_ant)
 
-    return theta_new, sigma_inv_actual
+    return theta_new, sigma_inv_actual, eps
