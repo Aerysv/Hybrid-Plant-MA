@@ -20,11 +20,13 @@ class Controlador():
         s.flagMHE = True
         s.opcion_grad = 2             # 1- Exacto, 2- NLMS, 3- DME
         s.tSample = 0.5
-        s.K = 0.9
+
+        s.K = 1.0
         s.k_MA = 0
-        s.Lambda = [0.0, 0.0]
         s.mu_J = 0.05
         s.mu_g1 = 0.05
+
+        s.Lambda = [0.0, 0.0]
         s.theta_J_ant = [0.0]*15
         s.theta_g_ant = [0.0]*15
         s.LimsupT = 32.0

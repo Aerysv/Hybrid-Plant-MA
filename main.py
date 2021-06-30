@@ -89,7 +89,7 @@ pFr = 3.0  # (euro/mol)
 
 # Parametros MA
 conMA = True
-K = 0.9  # filtro de los modificadores
+K = 1.0 # filtro de los modificadores
 opcion_grad = 2             # 1- Exacto, 2- NLMS, 3- RELS , 4 -DME
 
 # MHE
@@ -107,7 +107,7 @@ elif (opcion_grad==3):
 
 # NLMS
 mu_J = 0.05
-mu_g1 = 0.05 
+mu_g1 = 0.05
 
 # RELS
 I = np.eye(16,16)
@@ -362,8 +362,10 @@ for k_sim in range(0, 241): #121 241 481
             g1_p = J_y_g[1]
 
             if (k_MA == 1):
+                print("k_MA == 1")
                 Epsilon = g1_p - g1_m
             else:
+                print("not k_MA == 1")
                 Epsilon = Epsilon*(1-K) + K*(g1_p - g1_m)   
 
         elif(opcion_grad == 4) & (k_sim > Ne+1): # NO ESTÁ OPERACIONAL

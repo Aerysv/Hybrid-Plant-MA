@@ -474,7 +474,7 @@
 <UAVariable DataType="Double" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=mu_J" BrowseName="4:mu_J" UserAccessLevel="3" AccessLevel="3">
   <DisplayName>mu_J</DisplayName>
   <Value>
-    <uax:Double>1.0</uax:Double>
+    <uax:Double>0.05</uax:Double>
   </Value>
      <References>
   <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
@@ -483,7 +483,7 @@
 <UAVariable DataType="Int32" ParentNodeId="ns=2;s=server_variables" NodeId="ns=4;s=opciones_grad" BrowseName="4:opciones_grad" UserAccessLevel="3" AccessLevel="3">
   <DisplayName>opciones_grad</DisplayName>
   <Value>
-    <Int32>1</Int32>
+    <Int32>2</Int32>
   </Value>
      <References>
   <Reference ReferenceType="Organizes" IsForward="false">ns=2;s=server_variables</Reference>
